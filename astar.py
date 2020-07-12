@@ -71,7 +71,7 @@ with open("NYC/2015_taxi_data.csv") as rFile:
             temp[first_line[i]] = line[i]
         trips_raw[t] = temp
         t += 1
-        if t == 1000:
+        if t == 100:
             break
 trips = []
 for trip in trips_raw.values():
@@ -107,19 +107,22 @@ for trip in trips:
     n2 = trip[1]
     print(f"Going from {n1} to {n2}")
     # Find path
-    path = nx.astar_path(G, n1, n2, distm)
-    # Print cost of path
-    print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, distm)}")
-    # Print number of nodes in path
-    print(f"Nodes in trip: {len(path)}")
-    # Add path to figure
-    px = []
-    py = []
-    for p in range(len(path)-1):
-        plt.plot((path[p][0], path[p+1][0]), (path[p][1], path[p+1][1]), "m--")
-        px.append(path[p][0])
-        py.append(path[p][1])
-    plt.plot(px,py, 'b.')
+    try:
+        path = nx.astar_path(G, n1, n2, distm)
+        # Print cost of path
+        print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, distm)}")
+        # Print number of nodes in path
+        print(f"Nodes in trip: {len(path)}")
+        # Add path to figure
+        px = []
+        py = []
+        for p in range(len(path)-1):
+            plt.plot((path[p][0], path[p+1][0]), (path[p][1], path[p+1][1]), "m--")
+            px.append(path[p][0])
+            py.append(path[p][1])
+        plt.plot(px,py, 'b.')
+    except:
+        print("Couldn't find a path")
 
 
 plt.axis('equal')
