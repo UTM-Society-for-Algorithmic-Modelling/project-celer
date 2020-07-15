@@ -1,129 +1,257 @@
 from shapely.geometry import shape
 import fiona
-import math
-import random
 import networkx as nx
 import matplotlib.pyplot as plt
-
-
+import math
+import random
+import pickle
 try:
-     from itertools import izip as zip
+    from itertools import izip as zip
 except ImportError: # will be 3.x series
-     pass
-# Create a Graph
-G = nx.Graph()
-speeds = {}
-# Replace with street abbr
-rep = {}
-with open("abbr.txt") as rFile:
-    for line in rFile:
-        line = line.rstrip("\n")
-        rep[line.split(" ")[0].upper()] = line.split(" ")[1].upper()
-ti = 0
-to = 0
-for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_6459c10e-7bfb-4e64-ae29-f0747dc3824c.shp"):
-    street = feature["properties"]["street"]
-    speeds[street] = feature["properties"]["postvz_sl"]
-    for i in rep:
-        street = street.replace(i, rep[i])
-    speeds[street] = feature["properties"]["postvz_sl"]
-for feature in fiona.open("NYC/Map/geo_export_24fdfadb-893d-40a0-a751-a76cdefc9bc6.shp"):
-    for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),list(shape(feature["geometry"]).coords)[1:]):
-        street = feature["properties"]["st_label"]
-        if street in speeds:
-            ti += 1
-        else:
-            to += 1
-        divider = speeds.get(street, 0)
-        if divider == 0:
-            divider = 25
-        G.add_edge(seg_start, seg_end, weight = ((seg_start[0]-seg_end[0]) ** 2 + (seg_start[1]-seg_end[1]) ** 2) ** 0.5 / divider)
-print(f"Street names recognized: {ti}. Unrecognized: {to}")
+    pass
 
-# Plot nodes
-# x = []
-# y = []
-# for node in G.nodes():
-#     x.append(node[0])
-#     y.append(node[1])
-#plt.plot(x,y, 'g.')
+def main():
+    """
+    Main function
+    """
+    G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
+    draw_graph(G)
+    process_trips(trips=[], heuristic=distm)
+
+    plt.show()
 
 
-# Nodes for pathfinding
-# n1 = random.randint(0,361678)
-# n2 = random.randint(0,361678)
-# c = 0
-# for node in G.nodes():
-#     if c == n1:
-#         n1 = node
-#     if c == n2:
-#         n2 = node
-#     c += 1
+# === Load Data ===
+def load_data(reset=False, graph=False, trips=False, abbr=False):
+    """
+    Returns a graph representing the NYC map and an array of 2015 trips.
 
-trips_raw = {}
-with open("NYC/2015_taxi_data.csv") as rFile:
-    first_line = rFile.readline().rstrip("\n").split(",")
-    t = 0
-    for line in rFile:
-        line = line.rstrip("\n").split(",")
-        temp = {}
-        for i in range(len(first_line)):
-            temp[first_line[i]] = line[i]
-        trips_raw[t] = temp
-        t += 1
-        if t == 100:
-            break
-trips = []
-for trip in trips_raw.values():
-    starting = (float(trip["pickup_longitude"]), float(trip["pickup_latitude"]))
-    ending = (float(trip["dropoff_longitude"]), float(trip["dropoff_latitude"]))
-    n1 = (None, float("inf"))
-    n2 = (None, float("inf"))
-    for node in G.nodes():
-        closeness = abs(starting[0] - node[0]) + abs(starting[1] - node[1])
-        if closeness < n1[1]:
-            n1 = (node, closeness)
-        closeness = abs(ending[0] - node[0]) + abs(ending[1] - node[1])
-        if closeness < n2[1]:
-            n2 = (node, closeness)
-    trips.append((n1[0], n2[0]))
+    Parameters: (reset)
+        reset - bool
+        graph - bool
+        trips - bool
+        abbr - bool
+    """
+    G = None
+    trips = None
 
-# Plot Edges
-c = 0
-for edge in G.edges():
-    #if c % 3 == 0:
-    #if min(n1[0],n2[0]) < edge[0][0] < max(n1[0],n2[0]) and min(n1[1],n2[1]) < edge[0][1] < max(n1[1],n2[1]):
-    plt.plot((edge[0][0],edge[1][0]), (edge[0][1], edge[1][1]), 'c.-')
-    c += 1
+    if reset:
+        graph = trips = True
+    if graph:
+        pickle_graph(abbr)
+    with open('graph.pkl', 'rb') as graph_file:
+        G = pickle.load(graph_file)
 
+    if trips:
+        pickle_trips(G)
+    with open('trips.pkl', 'rb') as trips_file:
+        trips = pickle.load(trips_file)
 
-# A star
-def diste(p1, p2):
-    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2))
-def distm(p1, p2):
-    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1])
-for trip in trips:
-    n1 = trip[0]
-    n2 = trip[1]
-    print(f"Going from {n1} to {n2}")
-    # Find path
+    return G, trips
+
+def pickle_graph(abbr):
+    """
+    Save the graph in a pickle file.
+
+    Parameters: (abbr)
+        abbr - bool
+    """
+    # Replace with street abbr
     try:
-        path = nx.astar_path(G, n1, n2, distm)
-        # Print cost of path
-        print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, distm)}")
-        # Print number of nodes in path
-        print(f"Nodes in trip: {len(path)}")
-        # Add path to figure
-        px = []
-        py = []
-        for p in range(len(path)-1):
-            plt.plot((path[p][0], path[p+1][0]), (path[p][1], path[p+1][1]), "m--")
-            px.append(path[p][0])
-            py.append(path[p][1])
-        plt.plot(px,py, 'b.')
+        if abbr:
+            raise ResetPickle
+        with open('abbr.pkl', 'rb') as abbr_file:
+            abbr = pickle.load(abbr_file)
     except:
-        print("Couldn't find a path")
+        abbr = {}
+        with open("abbr.txt") as rFile:
+            for line in rFile:
+                line = line.rstrip("\n")
+                abbr[line.split(" ")[0].upper()] = line.split(" ")[1].upper()
+        with open('abbr.pkl', 'wb') as out:
+            pickle.dump(abbr, out)
+        
+    recognized = 0
+    unrecognized = 0
+
+    # Build speeds dictionary
+    speeds = {}
+    for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_6459c10e-7bfb-4e64-ae29-f0747dc3824c.shp"):
+        street = feature["properties"]["street"]
+        for v in street_variations(street, abbr):
+            speeds[v] = feature["properties"]["postvz_sl"]
+    
+    # Create a Graph
+    G = nx.Graph()
+    for feature in fiona.open("NYC/Map/geo_export_24fdfadb-893d-40a0-a751-a76cdefc9bc6.shp"):
+        for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),list(shape(feature["geometry"]).coords)[1:]):
+            street = feature["properties"]["st_label"]
+            if street in speeds:
+                recognized += 1
+            else:
+                unrecognized += 1
+            divider = speeds.get(street, 0)
+            if divider == 0:
+                divider = 25
+            G.add_edge(seg_start, seg_end, weight = weight(seg_start, seg_end, divider))
+    
+    print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
+
+    with open('graph.pkl', 'wb') as out:
+            pickle.dump(G, out)
+    
+def pickle_trips(G):
+    """
+    Saves the trips in a pickle file.
+
+    Parameters: (G)
+        G - networkx.graph()
+    """
+    trips_raw = {}
+    with open("NYC/2015_taxi_data.csv") as rFile:
+        first_line = rFile.readline().rstrip("\n").split(",")
+        t = 0
+        for line in rFile:
+            line = line.rstrip("\n").split(",")
+            temp = {}
+            for i in range(len(first_line)):
+                temp[first_line[i]] = line[i]
+            trips_raw[t] = temp
+            t += 1
+            if t == 1:
+                break
+    trips = []
+    for trip in trips_raw.values():
+        starting = (float(trip["pickup_longitude"]), float(trip["pickup_latitude"]))
+        ending = (float(trip["dropoff_longitude"]), float(trip["dropoff_latitude"]))
+        n1 = (None, float("inf"))
+        n2 = (None, float("inf"))
+        for node in G.nodes():
+            closeness = abs(starting[0] - node[0]) + abs(starting[1] - node[1])
+            if closeness < n1[1]:
+                n1 = (node, closeness)
+            closeness = abs(ending[0] - node[0]) + abs(ending[1] - node[1])
+            if closeness < n2[1]:
+                n2 = (node, closeness)
+        trips.append((n1[0], n2[0]))
+        
+    with open('trips.pkl', 'wb') as out:
+        pickle.dump(trips, out)
+
+def street_variations(s, abbr):
+    """
+    Returns multiple variations of the street name based on common street term abbriviations.
+
+    Parameters: (s, abbr)
+        s - string
+        abbr - {ABBR}
+    """
+    variations = [s]
+    for a in abbr:
+        for v in variations.copy():
+            if a in v:
+                v = v.replace(a, abbr[a])
+                variations.append(v)
+    return variations
+
+class ResetPickle(Exception):
+    pass
 
 
-plt.axis('equal')
-plt.show()
+# === Plotting ===
+def draw_graph(g, n=((-180, -90), (180, 90))):
+    """
+    Plots the edges on matplotlib.
+
+    Parameters: (g, n)
+        g - networkx.graph()
+        n - (node, node)
+        node - (lon, lat)
+    """
+    # Plot Edges
+    n1 = n[0]
+    n2 = n[1]
+    for edge in g.edges():
+        if min(n1[0],n2[0]) < edge[0][0] < max(n1[0],n2[0]) and min(n1[1],n2[1]) < edge[0][1] < max(n1[1],n2[1]):
+            plt.plot((edge[0][0],edge[1][0]), (edge[0][1], edge[1][1]), 'c.-')
+
+def draw_path(path):
+    """
+    Plots a path on matplotlib.
+
+    Parameters: (path)
+        path - [nodes]
+        fig - plt.figure()
+        node - (lon, lat)
+    """
+    px = []
+    py = []
+    for p in range(len(path)-1):
+        plt.plot((path[p][0], path[p+1][0]), (path[p][1], path[p+1][1]), "m--")
+        px.append(path[p][0])
+        py.append(path[p][1])
+    plt.plot(px,py, 'b.')
+
+
+
+# === Trips ===
+def process_trips(trips, heuristic):
+    """
+    Processes trips and plots them on the graph
+
+    Parameters: (trips)
+        trips - [trips]
+        trip - (node, node)
+        fig - plt.figure()
+        node - (lon, lat)
+    """
+    for trip in trips:
+        n1 = trip[0]
+        n2 = trip[1]
+        print(f"Going from {n1} to {n2}")
+        try:
+            path = nx.astar_path(G, n1, n2, heuristic)
+            draw_path(path)
+
+            print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
+            print(f"Nodes in trip: {len(path)}")
+        except:
+            print("Couldn't find a path")
+
+
+# === Heuristics ===
+def weight(s, e, speed):
+    """
+    Returns the weight to be assigned to the edges of the graph.
+
+    Parameters: (s, e, d)
+        s - (lon, lat)
+        e - (lon, lat)
+        speed - int
+    """
+    return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / speed
+
+def diste(p1, p2):
+    """
+    Returns euclidean distance.
+
+    Parameters: (p1, p2)
+        p1 - (lon, lat)
+        p2 - (lon, lat)
+    """
+    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5
+
+def distm(p1, p2):
+    """
+    Returns manhattan distance.
+
+    Parameters: (p1, p2)
+        p1 - (lon, lat)
+        p2 - (lon, lat)
+    """
+    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1])
+
+
+# === Main ===
+if __name__ == "__main__":
+    main()
