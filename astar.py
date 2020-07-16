@@ -20,6 +20,7 @@ def main():
     draw_graph(G, bounds=t)
     process_trips(G, trips=[t], heuristic=distm)
 
+    plt.axis('equal')
     plt.show()
 
 
@@ -215,13 +216,14 @@ def process_trips(G, trips, heuristic):
 
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
+            # Note: Edges with the exact same length are only counted once as this was found to be the most accurate so far
             speeds = {}
             distances = []
             for p in range(len(path)-1):
                 speed = round( 1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
                 if G[path[p]][path[p+1]]["distance"] not in distances:
                     distances.append(G[path[p]][path[p+1]]["distance"])
-                speeds[speed] = speeds.get(speed, 0) + 1
+                    speeds[speed] = speeds.get(speed, 0) + 1
             print(f"Speeds (mph): {speeds}")
             print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
             print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
