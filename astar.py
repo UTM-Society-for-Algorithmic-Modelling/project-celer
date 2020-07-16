@@ -7,7 +7,7 @@ import random
 import pickle
 try:
     from itertools import izip as zip
-except ImportError: # will be 3.x series
+except ImportError:
     pass
 
 def main():
@@ -16,7 +16,8 @@ def main():
     """
     G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
     t = random_trip(G)
-    draw_graph(G, bounds= t)
+    #t = ((-73.72770035929027, 40.74345679662331), (-73.76426798716528, 40.77214782804362))
+    draw_graph(G, bounds=t)
     process_trips(G, trips=[t], heuristic=distm)
 
     plt.show()
@@ -94,7 +95,7 @@ def pickle_graph(abbr):
             divider = speeds.get(street, 0)
             if divider == 0:
                 divider = 25
-            G.add_edge(seg_start, seg_end, weight = weight(seg_start, seg_end, divider))
+            G.add_edge(seg_start, seg_end, weight = weight(seg_start, seg_end, divider), distance=feature["properties"]["shape_leng"])
     
     print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
 
@@ -214,6 +215,16 @@ def process_trips(G, trips, heuristic):
 
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
+            speeds = {}
+            distances = []
+            for p in range(len(path)-1):
+                speed = round( 1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
+                if G[path[p]][path[p+1]]["distance"] not in distances:
+                    distances.append(G[path[p]][path[p+1]]["distance"])
+                speeds[speed] = speeds.get(speed, 0) + 1
+            print(f"Speeds (mph): {speeds}")
+            print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
+            print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
 
             draw_path(path)
         except:
@@ -259,7 +270,7 @@ def diste(p1, p2):
         p1 - (lon, lat)
         p2 - (lon, lat)
     """
-    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5 / 25
+    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5 / 65
 
 def distm(p1, p2):
     """
@@ -269,7 +280,27 @@ def distm(p1, p2):
         p1 - (lon, lat)
         p2 - (lon, lat)
     """
-    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1]) / 25 
+    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1]) / 65
+
+
+# === Helpers ===
+def distance_to_meters(n1, n2):
+    """
+    Calculates the great circle distance between two points.
+
+    Parameters: (n1, n2)
+        n1 - (lon, lat)
+        n2 - (lon, lat)
+    """
+    radius = 6371000 # Radius of earth
+    o1 = n1[1] * math.pi / 180
+    o2 = n2[1] * math.pi / 180
+    d1 = (n2[1] - n1[1]) * math.pi /180
+    d2 = (n2[0] - n1[0]) * math.pi /180
+
+    a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2/2) * math.sin(d2/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    return round(radius * c, 2)
 
 
 # === Main ===
