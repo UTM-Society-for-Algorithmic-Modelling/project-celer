@@ -16,7 +16,7 @@ def main():
     """
     G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
     t = random_trip(G)
-    draw_graph(G, t)
+    draw_graph(G, bounds= t)
     process_trips(G, trips=[t], heuristic=distm)
 
     plt.show()
@@ -160,18 +160,18 @@ class ResetPickle(Exception):
 
 
 # === Plotting ===
-def draw_graph(g, n=((-180, -90), (180, 90))):
+def draw_graph(g, bounds=((-180, -90), (180, 90))):
     """
     Plots the edges on matplotlib.
 
-    Parameters: (g, n)
+    Parameters: (g, bounds)
         g - networkx.graph()
-        n - (node, node)
+        bounds - (node, node)
         node - (lon, lat)
     """
     # Plot Edges
-    n1 = n[0]
-    n2 = n[1]
+    n1 = bounds[0]
+    n2 = bounds[1]
     for edge in g.edges():
         if min(n1[0],n2[0]) < edge[0][0] < max(n1[0],n2[0]) and min(n1[1],n2[1]) < edge[0][1] < max(n1[1],n2[1]):
             plt.plot((edge[0][0],edge[1][0]), (edge[0][1], edge[1][1]), 'c.-')
@@ -263,7 +263,7 @@ def diste(p1, p2):
 
 def distm(p1, p2):
     """
-    Returns manhattan distance divided by the default NYC speed. / 25
+    Returns manhattan distance divided by the default NYC speed.
 
     Parameters: (p1, p2)
         p1 - (lon, lat)
