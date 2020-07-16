@@ -15,8 +15,9 @@ def main():
     Main function
     """
     G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
-    draw_graph(G)
-    process_trips(trips=[], heuristic=distm)
+    t = random_trip(G)
+    draw_graph(G, t)
+    process_trips(G, trips=[t], heuristic=distm)
 
     plt.show()
 
@@ -181,7 +182,6 @@ def draw_path(path):
 
     Parameters: (path)
         path - [nodes]
-        fig - plt.figure()
         node - (lon, lat)
     """
     px = []
@@ -193,16 +193,16 @@ def draw_path(path):
     plt.plot(px,py, 'b.')
 
 
-
 # === Trips ===
-def process_trips(trips, heuristic):
+def process_trips(G, trips, heuristic):
     """
     Processes trips and plots them on the graph
 
-    Parameters: (trips)
+    Parameters: (G, trips, heuristic)
+        G - networkx.graph()
         trips - [trips]
+        heuristic - Callable
         trip - (node, node)
-        fig - plt.figure()
         node - (lon, lat)
     """
     for trip in trips:
@@ -211,12 +211,32 @@ def process_trips(trips, heuristic):
         print(f"Going from {n1} to {n2}")
         try:
             path = nx.astar_path(G, n1, n2, heuristic)
-            draw_path(path)
 
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
+
+            draw_path(path)
         except:
             print("Couldn't find a path")
+
+def random_trip(G):
+    """
+    Returns a randomly generated trip.
+
+    Parameters: (G)
+        G - netwrokx.graph()
+    """
+    tn = len(G.nodes())
+    n1 = random.randint(0,tn)
+    n2 = random.randint(0,tn)
+    tn = 0
+    for node in G.nodes():
+        if n1 == tn:
+            n1 = node
+        if n2 == tn:
+            n2 = node
+        tn += 1
+    return n1, n2
 
 
 # === Heuristics ===
@@ -233,23 +253,23 @@ def weight(s, e, speed):
 
 def diste(p1, p2):
     """
-    Returns euclidean distance.
+    Returns euclidean distance divided by the default NYC speed.
 
     Parameters: (p1, p2)
         p1 - (lon, lat)
         p2 - (lon, lat)
     """
-    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5
+    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5 / 25
 
 def distm(p1, p2):
     """
-    Returns manhattan distance.
+    Returns manhattan distance divided by the default NYC speed. / 25
 
     Parameters: (p1, p2)
         p1 - (lon, lat)
         p2 - (lon, lat)
     """
-    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1])
+    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1]) / 25 
 
 
 # === Main ===
