@@ -16,9 +16,9 @@ def main():
     """
     G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
     t = random_trip(G)
-    #t = ((-73.72770035929027, 40.74345679662331), (-73.76426798716528, 40.77214782804362))
+    t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=t)
-    process_trips(G, trips=[t], heuristic=distm)
+    process_trips(G, trips=[t], heuristic=diste)
 
     plt.axis('equal')
     plt.show()
@@ -96,6 +96,8 @@ def pickle_graph(abbr):
             divider = speeds.get(street, 0)
             if divider == 0:
                 divider = 25
+            seg_start = seg_start[1], seg_start[0]
+            seg_end = seg_end[1], seg_end[0]
             G.add_edge(seg_start, seg_end, weight = weight(seg_start, seg_end, divider), distance=feature["properties"]["shape_leng"])
     
     print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
@@ -125,8 +127,8 @@ def pickle_trips(G):
                 break
     trips = []
     for trip in trips_raw.values():
-        starting = (float(trip["pickup_longitude"]), float(trip["pickup_latitude"]))
-        ending = (float(trip["dropoff_longitude"]), float(trip["dropoff_latitude"]))
+        starting = (float(trip["pickup_latitude"]), float(trip["pickup_longitude"]))
+        ending = (float(trip["dropoff_latitude"]), float(trip["dropoff_longitude"]))
         n1 = (None, float("inf"))
         n2 = (None, float("inf"))
         for node in G.nodes():
@@ -169,14 +171,16 @@ def draw_graph(g, bounds=((-180, -90), (180, 90))):
     Parameters: (g, bounds)
         g - networkx.graph()
         bounds - (node, node)
-        node - (lon, lat)
+        node - (lat, lon)
+
+    Note: inverse (lat, lon) to (lon, lat) for the graph.
     """
     # Plot Edges
     n1 = bounds[0]
     n2 = bounds[1]
     for edge in g.edges():
         if min(n1[0],n2[0]) < edge[0][0] < max(n1[0],n2[0]) and min(n1[1],n2[1]) < edge[0][1] < max(n1[1],n2[1]):
-            plt.plot((edge[0][0],edge[1][0]), (edge[0][1], edge[1][1]), 'c.-')
+            plt.plot((edge[0][1], edge[1][1]), (edge[0][0],edge[1][0]), 'c.-')
 
 def draw_path(path):
     """
@@ -184,14 +188,16 @@ def draw_path(path):
 
     Parameters: (path)
         path - [nodes]
-        node - (lon, lat)
+        node - (lat, lon)
+
+    Note: inverse (lat, lon) to (lon, lat) for the graph.
     """
     px = []
     py = []
     for p in range(len(path)-1):
-        plt.plot((path[p][0], path[p+1][0]), (path[p][1], path[p+1][1]), "m--")
-        px.append(path[p][0])
-        py.append(path[p][1])
+        plt.plot((path[p][1], path[p+1][1]), (path[p][0], path[p+1][0]), "m--")
+        px.append(path[p][1])
+        py.append(path[p][0])
     plt.plot(px,py, 'b.')
 
 
@@ -205,7 +211,7 @@ def process_trips(G, trips, heuristic):
         trips - [trips]
         heuristic - Callable
         trip - (node, node)
-        node - (lon, lat)
+        node - (lat, lon)
     """
     for trip in trips:
         n1 = trip[0]
@@ -258,29 +264,29 @@ def weight(s, e, speed):
     Returns the weight to be assigned to the edges of the graph.
 
     Parameters: (s, e, d)
-        s - (lon, lat)
-        e - (lon, lat)
+        s - (lat, lon)
+        e - (lat, lon)
         speed - int
     """
     return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / speed
 
 def diste(p1, p2):
     """
-    Returns euclidean distance divided by the default NYC speed.
+    Returns euclidean distance divided by the default NYC speed. Admissible
 
     Parameters: (p1, p2)
-        p1 - (lon, lat)
-        p2 - (lon, lat)
+        p1 - (lat, lon)
+        p2 - (lat, lon)
     """
     return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5 / 65
 
 def distm(p1, p2):
     """
-    Returns manhattan distance divided by the default NYC speed.
+    Returns manhattan distance divided by the default NYC speed. NOT admissible.
 
     Parameters: (p1, p2)
-        p1 - (lon, lat)
-        p2 - (lon, lat)
+        p1 - (lat, lon)
+        p2 - (lat, lon)
     """
     return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1]) / 65
 
@@ -291,14 +297,14 @@ def distance_to_meters(n1, n2):
     Calculates the great circle distance between two points.
 
     Parameters: (n1, n2)
-        n1 - (lon, lat)
-        n2 - (lon, lat)
+        n1 - (lat, lon)
+        n2 - (lat, lon)
     """
     radius = 6371000 # Radius of earth
-    o1 = n1[1] * math.pi / 180
-    o2 = n2[1] * math.pi / 180
-    d1 = (n2[1] - n1[1]) * math.pi /180
-    d2 = (n2[0] - n1[0]) * math.pi /180
+    o1 = n1[0] * math.pi / 180
+    o2 = n2[0] * math.pi / 180
+    d1 = (n2[0] - n1[0]) * math.pi /180
+    d2 = (n2[1] - n1[1]) * math.pi /180
 
     a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2/2) * math.sin(d2/2)
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
