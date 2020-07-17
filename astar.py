@@ -79,14 +79,14 @@ def pickle_graph(abbr):
 
     # Build speeds dictionary
     speeds = {}
-    for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_6459c10e-7bfb-4e64-ae29-f0747dc3824c.shp"):
+    for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_822d1ee8-4ed3-44b9-a802-eae08ae68732.shp"):
         street = feature["properties"]["street"]
         for v in street_variations(street, abbr):
             speeds[v] = feature["properties"]["postvz_sl"]
     
     # Create a Graph
     G = nx.Graph()
-    for feature in fiona.open("NYC/Map/geo_export_24fdfadb-893d-40a0-a751-a76cdefc9bc6.shp"):
+    for feature in fiona.open("NYC/Map/geo_export_0b3bfc39-2b07-4b83-b2d7-50b1be52dd7a.shp"):
         for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),list(shape(feature["geometry"]).coords)[1:]):
             street = feature["properties"]["st_label"]
             if street in speeds:
