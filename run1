@@ -1,0 +1,48 @@
+STARTING TRIP 0
+Going from (-74.15041317931797, 40.5996218914277) to (-73.71221743111022, 40.742584567347656)
+Cost of trip: 0.023622050500811852
+Nodes in trip: 1781
+Speeds (mph): {25: 387, 30: 11, 35: 8, 50: 81, 40: 42}
+Distance (meters?): 67966.35
+Euclidean distance (meters): 40230.13
+DONE TRIP 0
+STARTING TRIP 1
+Going from (-73.9568759561158, 40.76082460491807) to (-73.8917661791401, 40.88504984575942)
+Cost of trip: 0.008018009220185342
+Nodes in trip: 734
+Speeds (mph): {25: 171, 50: 2, 40: 1, 30: 7}
+Distance (meters?): 20184.71
+Euclidean distance (meters): 14860.03
+DONE TRIP 1
+STARTING TRIP 2
+Going from (-73.91626213720845, 40.79145381887751) to (-73.98419205266406, 40.785898982566906)
+Cost of trip: 0.005601551698602397
+Nodes in trip: 705
+Speeds (mph): {25: 142, 40: 1}
+Distance (meters?): 13875.8
+Euclidean distance (meters): 5752.17
+DONE TRIP 2
+STARTING TRIP 3
+Going from (-74.15955521693522, 40.61517755531129) to (-73.95166190079092, 40.7614371253709)
+Cost of trip: 0.015664242637266814
+Nodes in trip: 1034
+Speeds (mph): {25: 318, 30: 8, 35: 11, 50: 39}
+Distance (meters?): 43467.68
+Euclidean distance (meters): 23911.25
+DONE TRIP 3
+STARTING TRIP 4
+Going from (-74.0218698054644, 40.67266158530135) to (-74.05538493643604, 40.651650100838616)
+Cost of trip: 0.005428631957146939
+Nodes in trip: 589
+Speeds (mph): {25: 5, 35: 4}
+Distance (meters?): 18201.64
+Euclidean distance (meters): 3667.46
+DONE TRIP 4
+STARTING TRIP 5
+Going from (-73.99115998510186, 40.58659302531476) to (-73.8060533565741, 40.74632079909682)
+Cost of trip: 0.014540665486336922
+Nodes in trip: 1026
+Speeds (mph): {50: 46, 25: 242, 40: 43}
+Distance (meters?): 42593.67
+Euclidean distance (meters): 23647.39
+DONE TRIP 5
