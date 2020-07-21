@@ -16,7 +16,7 @@ def main():
     """
     G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
     t = random_trip(G)
-    t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
+    #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=t)
     process_trips(G, trips=[t], heuristic=diste)
 
@@ -222,17 +222,7 @@ def process_trips(G, trips, heuristic):
 
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
-            # Note: Edges with the exact same length are only counted once as this was found to be the most accurate so far
-            speeds = {}
-            distances = []
-            for p in range(len(path)-1):
-                speed = round( 1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
-                if G[path[p]][path[p+1]]["distance"] not in distances:
-                    distances.append(G[path[p]][path[p+1]]["distance"])
-                    speeds[speed] = speeds.get(speed, 0) + 1
-            print(f"Speeds (mph): {speeds}")
-            print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
-            print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
+            print_trip_info(n1, n2, path, G)
 
             draw_path(path)
         except:
@@ -256,6 +246,34 @@ def random_trip(G):
             n2 = node
         tn += 1
     return n1, n2
+
+def print_trip_info(n1, n2, path, G):
+    """
+    Prints and returns out the trip info for the trp: path.
+
+    Parameters: (n1, n2, path, G)
+        n1 - (lat, lon)
+        n2 - (lat, lon)
+        path - list of nodes in order
+        G - networkx.graph()
+        node - (lat, lon)
+    """
+    # Note: Edges with the exact same length are only counted once as this was found to be the most accurate so far
+    speeds = {}
+    distances = []
+    time = 0
+    for p in range(len(path)-1):
+        speed = round( 1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
+        if G[path[p]][path[p+1]]["distance"] not in distances:
+            distances.append(G[path[p]][path[p+1]]["distance"])
+            speeds[speed] = speeds.get(speed, 0) + 1
+            time += G[path[p]][path[p+1]]["distance"] * 0.3048 / (speed * 1609.34)
+    print(f"Speeds (mph): {speeds}")
+    print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
+    print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
+    print(f"Time (minutes): {round(time * 60, 2)}")
+    return speeds, round(sum(distances) * 0.3048, 2), round(time * 60, 2)
+
 
 
 # === Heuristics ===
