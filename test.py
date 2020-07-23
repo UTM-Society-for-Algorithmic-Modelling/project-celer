@@ -1,6 +1,7 @@
 import io
 import sys
 import astar
+from datetime import datetime
 
 
 def no_plot_main():
@@ -18,7 +19,10 @@ if __name__ == "__main__":
 		
 	for i in range(int(sys.argv[1])):
 		print("STARTING TRIP %d" % i) 
+		start = datetime.now()	
 		no_plot_main()	
+		end = datetime.now()
+		print("Time:", end-start) 
 		print("DONE TRIP %d" %i)
 	
 	sys.stdout.close()
