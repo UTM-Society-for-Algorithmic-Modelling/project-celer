@@ -129,19 +129,26 @@ def pickle_trips(G):
     for trip in trips_raw.values():
         starting = (float(trip["pickup_latitude"]), float(trip["pickup_longitude"]))
         ending = (float(trip["dropoff_latitude"]), float(trip["dropoff_longitude"]))
-        n1 = (None, float("inf"))
-        n2 = (None, float("inf"))
-        for node in G.nodes():
-            closeness = abs(starting[0] - node[0]) + abs(starting[1] - node[1])
-            if closeness < n1[1]:
-                n1 = (node, closeness)
-            closeness = abs(ending[0] - node[0]) + abs(ending[1] - node[1])
-            if closeness < n2[1]:
-                n2 = (node, closeness)
-        trips.append((n1[0], n2[0]))
+        n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
+        trips.append((n1, n2))
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
+
+def find_closest_node(G, starting):
+    """
+    Finds the closest node to starting.
+
+    Parameters: (G, starting)
+        G - networkx.graph()
+        starting - (lat, lon)
+    """
+    n1 = (None, float("inf"))
+    for node in G.nodes():
+        closeness = abs(starting[0] - node[0]) + abs(starting[1] - node[1])
+        if closeness < n1[1]:
+            n1 = (node, closeness)
+    return n1[0]
 
 def street_variations(s, abbr):
     """
@@ -249,7 +256,7 @@ def random_trip(G):
 
 def print_trip_info(n1, n2, path, G):
     """
-    Prints and returns out the trip info for the trp: path.
+    Prints and returns out the trip info for the trip: path.
 
     Parameters: (n1, n2, path, G)
         n1 - (lat, lon)
