@@ -12,6 +12,7 @@ Solution
 Using a combination of machine learning, algorithms, a central database, multiple smaller local databases, and live feedback to enhance traffic. A simulation will be used to simulate traffic in realistic conditions in which vehicles will communicate realistic information to a central database where machine learning algorithms will be used to instruct the vehicles of their path, required speed, and more information. As new situations happen, like maybe a vehicle gets a new destination or a pedestrian wants to cross, everything will be solved locally if possible, otherwise it will be communicated to the central database where a solution will be found quickly.
 
 Sources
+
 2015 Yellow Taxi Data - https://data.cityofnewyork.us/Transportation/2015-Yellow-Taxi-Trip-Data/ba8s-jw6u
 Speed Map - https://data.cityofnewyork.us/Transportation/VZV_Speed-Limits/7n5j-865y
 City Map - https://data.cityofnewyork.us/City-Government/NYC-Street-Centerline-CSCL-/exjm-f27b
