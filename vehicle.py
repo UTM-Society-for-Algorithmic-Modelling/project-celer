@@ -97,36 +97,56 @@ class Vehicle():
     def move(self):
         #self.current_speed += self.acceleration
         can_move = self.current_speed
-        total = abs(distance_to_meters(self.position, self.trips[0]["path"][1]))
-        print(total)
         current = 1
         nodes = len(self.trips[0]["path"])
-        while abs(total) < abs(can_move) and current < nodes:
+        while 0 < abs(can_move) and current < nodes:
+            dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
+            if can_move > dist:
+                can_move -= dist
+            else:
+                break
             current += 1
-            total += abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
         if current == nodes:
+            self.position = self.trips[0]["path"][-1]
             self.complete_trip()
-            self.position = self.trips[0]["path"][current-1]
             return
-        can_move -= (total - abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current])))
         self.position = self.trips[0]["path"][current-1]
-        for i in range(current-1):
+        for i in range(current-2):
             self.trips[0]["path"].pop(0)
-        print(can_move)
         to = self.trips[0]["path"][1]
+        lat_per_1d = 111000
+        lon_per_1d = math.cos(self.position[0]) * 111321
         lat_dif = to[0] - self.position[0]
         lon_dif = to[1] - self.position[1]
-        if lat_dif == 0:
-            self.angle = math.atan(lon_dif / 1)
+        if lon_dif == 0:
+            self.angle = math.pi / 2
         else:
-            self.angle = math.atan(lon_dif / lat_dif)
-        lat_move = can_move * math.cos(self.angle)
-        lon_move = can_move * math.sin(self.angle)
+            self.angle = abs(math.atan(lat_dif * lat_per_1d / (lon_dif * lon_per_1d)))
+        if lon_dif < 0:
+            if lat_dif > 0:
+                self.angle += math.pi / 2
+            if lat_dif < 0:
+                self.angle += math.pi 
+        else:
+            if lat_dif < 0:
+                self.angle -= math.pi / 2
+
+
+        print(self.angle, lat_dif, lon_dif)
+        lat_move = can_move * math.sin(self.angle) / lat_per_1d
+        lon_move = can_move * math.cos(self.angle) / lon_per_1d
+        if abs(lat_dif) <= abs(lat_move) or abs(lon_dif) <= abs(lon_move):
+            #print(1, lat_move - lat_dif, lon_move-lon_dif)
+            print(1)
+            lat_move = lat_dif
+            lon_move = lon_dif
         self.position = self.position[0] + lat_move, self.position[1] + lon_move
         if self.position == to:
             self.trips[0]["path"].pop(0)
             if len(self.trips[0]["path"]) == 1:
                 self.complete_trip()
+        else:
+            self.trips[0]["path"][0] = self.position
 
 
         # to = self.trips[0]["path"][1]
