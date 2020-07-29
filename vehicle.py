@@ -96,6 +96,7 @@ class Vehicle():
 
     def move(self):
         #self.current_speed += self.acceleration
+        # Idea: travel as many full edges as we can and then do part of one edge.
         can_move = self.current_speed
         current = 1
         nodes = len(self.trips[0]["path"])
