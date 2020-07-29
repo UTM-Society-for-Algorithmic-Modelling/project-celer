@@ -99,6 +99,7 @@ class Vehicle():
         can_move = self.current_speed
         current = 1
         nodes = len(self.trips[0]["path"])
+        # Go as far from node to node as possible with only full trips
         while 0 < abs(can_move) and current < nodes:
             dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
             if can_move > dist:
@@ -110,9 +111,11 @@ class Vehicle():
             self.position = self.trips[0]["path"][-1]
             self.complete_trip()
             return
+        # Remove nodes we just traveled
         self.position = self.trips[0]["path"][current-1]
         for i in range(current-2):
             self.trips[0]["path"].pop(0)
+        # Travel part of of edge but not full
         to = self.trips[0]["path"][1]
         lat_per_1d = 111000
         lon_per_1d = math.cos(self.position[0]) * 111321
