@@ -14,20 +14,15 @@ def main():
     """
     Main function
     """
-    G, trips = load_data(reset=True, graph=False, trips=False, abbr=False)
+    time = random.randint(0, 23)
+
+    G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
     t = random_trip(G)
-    #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=t)
-    process_trips(G, trips=[t], heuristic=diste)
+    p = process_trips(G, trips=[t], heuristic=diste)
 
     plt.axis('equal')
     plt.show()
-
-    n = list(G)
-    x1 = n[10]
-    x2 = n[11]
-    #print(G[x1][x2]["distance"])
-    print(G[x1][x2]["name"]) 
 
 # === Load Data ===
 def load_data(reset=False, graph=False, trips=False, abbr=False):
@@ -228,8 +223,10 @@ def process_trips(G, trips, heuristic):
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
             print_trip_info(n1, n2, path, G)
-
+            
             draw_path(path)
+            return path
+
         except:
             print("Couldn't find a path")
 
