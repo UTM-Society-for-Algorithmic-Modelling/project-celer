@@ -1,6 +1,8 @@
 import csv 
+import matplotlib.pyplot as plt
+import networkx as nx
 
-def process_data(path):
+def process_traffic(path):
 	"""
 	Process the given clean Traffic Data file.
 	Returns dictionary of street names, with list of traffic volume throughout a 24HR period. 
@@ -87,6 +89,27 @@ def merge_lists(old_list, new_list):
 	
 	return final
 
-if __name__ == "__main__":
+def process_traffic_old(G, trips):
+    """
+    Processes trips and plots them on the graph
+    ***Traffic Version***
+    Returns possible paths as list of nodes
+    ###
 
-	print(extract_data_a("traffic_volume.csv"))
+    Parameters: (G, trips)
+        G - networkx.graph()
+        trips - [trips]
+        trip - (node, node)
+        node - (lat, lon)
+    """
+    for trip in trips:
+        n1 = trip[0]
+        n2 = trip[1]
+        try:
+            paths = all_shortest_paths(G, n1, n2)
+            #path = nx.astar_path(G, n1, n2, heuristic)
+            return paths
+
+        except:
+            print("Couldn't find a path")
+

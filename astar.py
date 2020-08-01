@@ -4,6 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import math
 import random
+import traffic
 import pickle
 try:
     from itertools import izip as zip
@@ -14,13 +15,10 @@ def main():
     """
     Main function
     """
-    time = random.randint(0, 23)
-
     G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
     t = random_trip(G)
     draw_graph(G, bounds=t)
-    p = process_trips(G, trips=[t], heuristic=diste)
-
+    process_trips(G, trips=[t], heuristic=diste)
     plt.axis('equal')
     plt.show()
 
@@ -41,7 +39,8 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
     if reset:
         graph = trips = True
     if graph:
-        pickle_graph(abbr)
+        traffic_dict = traffic.process_traffic("traffic_volume.csv")
+        pickle_graph(abbr, traffic_dict)
     with open('graph.pkl', 'rb') as graph_file:
         G = pickle.load(graph_file)
 
@@ -52,12 +51,13 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
 
     return G, trips
 
-def pickle_graph(abbr):
+def pickle_graph(abbr, traffic_dict):
     """
     Save the graph in a pickle file.
 
     Parameters: (abbr)
         abbr - bool
+        traffic - dict 
     """
     # Replace with street abbr
     try:
@@ -98,8 +98,17 @@ def pickle_graph(abbr):
                 divider = 25
             seg_start = seg_start[1], seg_start[0]
             seg_end = seg_end[1], seg_end[0]
-            G.add_edge(seg_start, seg_end, weight = weight(seg_start, seg_end, divider), distance=feature["properties"]["shape_leng"], name=feature["properties"]["st_label"])
-    
+
+            time = random.randint(0, 23)
+            if street in traffic_dict:
+                volume_total = traffic_dict[street]
+                volume_count = volume_total[time]
+                w = reweight(seg_start, seg_end, divider, int(volume_count))
+            else:
+                w = weight(seg_start, seg_end, divider)
+
+            G.add_edge(seg_start, seg_end, weight = w, distance=feature["properties"]["shape_leng"])       
+
     print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
 
     with open('graph.pkl', 'wb') as out:
@@ -225,7 +234,6 @@ def process_trips(G, trips, heuristic):
             print_trip_info(n1, n2, path, G)
             
             draw_path(path)
-            return path
 
         except:
             print("Couldn't find a path")
@@ -236,7 +244,7 @@ def random_trip(G):
 
     Parameters: (G)
         G - netwrokx.graph()
-    """
+   """
     tn = len(G.nodes())
     n1 = random.randint(0,tn)
     n2 = random.randint(0,tn)
@@ -289,6 +297,22 @@ def weight(s, e, speed):
         speed - int
     """
     return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / speed
+
+def reweight(s, e, speed, volume):
+    """
+    Returns the weight to be assigned to the edges of the graph.
+    **Traffic Version**
+
+    Parameters: (s, e, d)
+        s - (lat, lon)
+        e - (lat, lon)
+        speed - int
+        volume - int
+    """
+    #density
+    density = volume/(distance_to_meters(s, e))
+    congestion = density/speed 
+    return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / congestion
 
 def diste(p1, p2):
     """
