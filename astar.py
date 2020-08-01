@@ -15,7 +15,7 @@ def main():
     """
     Main function
     """
-    G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
+    G, trips = load_data(reset=True, graph=False, trips=False, abbr=False)
     t = random_trip(G)
     draw_graph(G, bounds=t)
     process_trips(G, trips=[t], heuristic=diste)
@@ -39,7 +39,7 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
     if reset:
         graph = trips = True
     if graph:
-        traffic_dict = traffic.process_traffic("traffic_volume.csv")
+        traffic_dict = traffic.process_traffic("NYC/traffic_data/traffic_volume.csv")
         pickle_graph(abbr, traffic_dict)
     with open('graph.pkl', 'rb') as graph_file:
         G = pickle.load(graph_file)
@@ -226,6 +226,7 @@ def process_trips(G, trips, heuristic):
         n1 = trip[0]
         n2 = trip[1]
         print(f"Going from {n1} to {n2}")
+        print("Calculating traffic...")
         try:
             path = nx.astar_path(G, n1, n2, heuristic)
 
@@ -309,7 +310,6 @@ def reweight(s, e, speed, volume):
         speed - int
         volume - int
     """
-    #density
     density = volume/(distance_to_meters(s, e))
     congestion = density/speed 
     return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / congestion
