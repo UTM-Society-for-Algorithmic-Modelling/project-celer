@@ -26,6 +26,7 @@ def main():
 def load_data(reset=False, graph=False, trips=False, abbr=False):
     """
     Returns a graph representing the NYC map and an array of 2015 trips.
+    ***To refresh time, reset=True***
 
     Parameters: (reset)
         reset - bool
@@ -39,7 +40,7 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
     if reset:
         graph = trips = True
     if graph:
-        traffic_dict = traffic.process_traffic("NYC/traffic_data/traffic_volume.csv")
+        traffic_dict = traffic.process_traffic("NYC/Traffic_Data/traffic_volume.csv")
         pickle_graph(abbr, traffic_dict)
     with open('graph.pkl', 'rb') as graph_file:
         G = pickle.load(graph_file)
@@ -85,6 +86,7 @@ def pickle_graph(abbr, traffic_dict):
             speeds[v] = feature["properties"]["postvz_sl"]
     
     # Create a Graph
+    time = random.randint(0, 23)
     G = nx.Graph()
     for feature in fiona.open("NYC/Map/geo_export_0b3bfc39-2b07-4b83-b2d7-50b1be52dd7a.shp"):
         for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),list(shape(feature["geometry"]).coords)[1:]):
@@ -99,7 +101,6 @@ def pickle_graph(abbr, traffic_dict):
             seg_start = seg_start[1], seg_start[0]
             seg_end = seg_end[1], seg_end[0]
 
-            time = random.randint(0, 23)
             if street in traffic_dict:
                 volume_total = traffic_dict[street]
                 volume_count = volume_total[time]
