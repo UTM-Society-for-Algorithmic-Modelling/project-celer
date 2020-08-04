@@ -270,7 +270,7 @@ def print_trip_info(n1, n2, path, G):
     distances = []
     time = 0
     for p in range(len(path)-1):
-        speed = round( 1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
+        speed = round(1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
         if G[path[p]][path[p+1]]["distance"] not in distances:
             distances.append(G[path[p]][path[p+1]]["distance"])
             speeds[speed] = speeds.get(speed, 0) + 1
