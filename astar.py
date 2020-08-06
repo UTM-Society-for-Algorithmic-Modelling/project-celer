@@ -14,7 +14,7 @@ def main():
     """
     Main function
     """
-    G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
+    G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     t = random_trip(G)
     #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=t)
@@ -25,7 +25,7 @@ def main():
 
 
 # === Load Data ===
-def load_data(reset=False, graph=False, trips=False, abbr=False):
+def load_data(reset=False, graph=False, trip=False, abbr=False):
     """
     Returns a graph representing the NYC map and an array of 2015 trips.
 
@@ -39,13 +39,13 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
     trips = None
 
     if reset:
-        graph = trips = True
+        graph = trip = True
     if graph:
         pickle_graph(abbr)
     with open('graph.pkl', 'rb') as graph_file:
         G = pickle.load(graph_file)
 
-    if trips:
+    if trip:
         pickle_trips(G)
     with open('trips.pkl', 'rb') as trips_file:
         trips = pickle.load(trips_file)
@@ -112,7 +112,8 @@ def pickle_trips(G):
     Parameters: (G)
         G - networkx.graph()
     """
-    trips_raw = {}
+    trips = []
+    # trips_raw = {}
     with open("NYC/2015_taxi_data.csv") as rFile:
         first_line = rFile.readline().rstrip("\n").split(",")
         t = 0
@@ -121,16 +122,21 @@ def pickle_trips(G):
             temp = {}
             for i in range(len(first_line)):
                 temp[first_line[i]] = line[i]
-            trips_raw[t] = temp
+            starting = (float(temp["pickup_latitude"]), float(temp["pickup_longitude"]))
+            ending = (float(temp["dropoff_latitude"]), float(temp["dropoff_longitude"]))
+            n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
+            trips.append((n1, n2, temp["tpep_pickup_datetime"], temp["tpep_dropoff_datetime"]))
+            # trips_raw[t] = temp
             t += 1
-            if t == 1:
+            #print(t)
+            if t == 1000:
                 break
-    trips = []
-    for trip in trips_raw.values():
-        starting = (float(trip["pickup_latitude"]), float(trip["pickup_longitude"]))
-        ending = (float(trip["dropoff_latitude"]), float(trip["dropoff_longitude"]))
-        n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
-        trips.append((n1, n2))
+    # trips = []
+    # for trip in trips_raw.values():
+    #     starting = (float(trip["pickup_latitude"]), float(trip["pickup_longitude"]))
+    #     ending = (float(trip["dropoff_latitude"]), float(trip["dropoff_longitude"]))
+    #     n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
+    #     trips.append((n1, n2, trip["tpep_pickup_datetime"], trip["tpep_dropoff_datetime"]))
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
@@ -254,7 +260,7 @@ def random_trip(G):
         tn += 1
     return n1, n2
 
-def print_trip_info(n1, n2, path, G):
+def print_trip_info(n1, n2, path, G, pr=False):
     """
     Prints and returns out the trip info for the trip: path.
 
@@ -275,10 +281,11 @@ def print_trip_info(n1, n2, path, G):
             distances.append(G[path[p]][path[p+1]]["distance"])
             speeds[speed] = speeds.get(speed, 0) + 1
             time += G[path[p]][path[p+1]]["distance"] * 0.3048 / (speed * 1609.34)
-    print(f"Speeds (mph): {speeds}")
-    print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
-    print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
-    print(f"Time (minutes): {round(time * 60, 2)}")
+    if pr:
+        print(f"Speeds (mph): {speeds}")
+        print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
+        print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
+        print(f"Time (minutes): {round(time * 60, 2)}")
     return speeds, round(sum(distances) * 0.3048, 2), round(time * 60, 2)
 
 
