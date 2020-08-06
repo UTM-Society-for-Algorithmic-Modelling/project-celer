@@ -12,7 +12,7 @@ def process_traffic(path):
 	Parameters: (path)
 	path - string
 	"""
-	return extract_data_a("NYC/Traffic_Data/traffic_volume.csv")
+	return extract_data_a(path)
 
 def clean_data(path):
 	"""
