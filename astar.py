@@ -4,6 +4,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 import math
 import random
+import traffic
 import pickle
 try:
     from itertools import izip as zip
@@ -14,20 +15,19 @@ def main():
     """
     Main function
     """
-    G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
+    G, trips = load_data(reset=True, graph=False, trips=False, abbr=False)
     t = random_trip(G)
     #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=t)
     process_trips(G, trips=[t], heuristic=diste)
-
     plt.axis('equal')
     plt.show()
-
 
 # === Load Data ===
 def load_data(reset=False, graph=False, trips=False, abbr=False):
     """
     Returns a graph representing the NYC map and an array of 2015 trips.
+    ***To refresh time, reset=True***
 
     Parameters: (reset)
         reset - bool
@@ -41,7 +41,8 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
     if reset:
         graph = trips = True
     if graph:
-        pickle_graph(abbr)
+        traffic_dict = traffic.process_traffic("NYC/Traffic_Data/traffic_volume.csv")
+        pickle_graph(abbr, traffic_dict)
     with open('graph.pkl', 'rb') as graph_file:
         G = pickle.load(graph_file)
 
@@ -52,12 +53,13 @@ def load_data(reset=False, graph=False, trips=False, abbr=False):
 
     return G, trips
 
-def pickle_graph(abbr):
+def pickle_graph(abbr, traffic_dict):
     """
     Save the graph in a pickle file.
 
     Parameters: (abbr)
         abbr - bool
+        traffic - dict 
     """
     # Replace with street abbr
     try:
@@ -79,14 +81,15 @@ def pickle_graph(abbr):
 
     # Build speeds dictionary
     speeds = {}
-    for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_6459c10e-7bfb-4e64-ae29-f0747dc3824c.shp"):
+    for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_822d1ee8-4ed3-44b9-a802-eae08ae68732.shp"):
         street = feature["properties"]["street"]
         for v in street_variations(street, abbr):
             speeds[v] = feature["properties"]["postvz_sl"]
     
     # Create a Graph
+    time = random.randint(0, 23)
     G = nx.Graph()
-    for feature in fiona.open("NYC/Map/geo_export_24fdfadb-893d-40a0-a751-a76cdefc9bc6.shp"):
+    for feature in fiona.open("NYC/Map/geo_export_0b3bfc39-2b07-4b83-b2d7-50b1be52dd7a.shp"):
         for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),list(shape(feature["geometry"]).coords)[1:]):
             street = feature["properties"]["st_label"]
             if street in speeds:
@@ -98,8 +101,15 @@ def pickle_graph(abbr):
                 divider = 25
             seg_start = seg_start[1], seg_start[0]
             seg_end = seg_end[1], seg_end[0]
-            G.add_edge(seg_start, seg_end, weight = weight(seg_start, seg_end, divider), distance=feature["properties"]["shape_leng"])
-    
+            if street in traffic_dict:
+                volume_total = traffic_dict[street]
+                volume_count = volume_total[time]
+                w = reweight(seg_start, seg_end, divider, int(volume_count))
+            else:
+                w = weight(seg_start, seg_end, divider)
+
+            G.add_edge(seg_start, seg_end, weight = w, distance=feature["properties"]["shape_leng"])       
+
     print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
 
     with open('graph.pkl', 'wb') as out:
@@ -224,14 +234,15 @@ def process_trips(G, trips, heuristic):
         n1 = trip[0]
         n2 = trip[1]
         print(f"Going from {n1} to {n2}")
+        print("Calculating traffic...")
         try:
             path = nx.astar_path(G, n1, n2, heuristic)
 
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
             print_trip_info(n1, n2, path, G)
-
             draw_path(path)
+
         except:
             print("Couldn't find a path")
 
@@ -241,7 +252,7 @@ def random_trip(G):
 
     Parameters: (G)
         G - netwrokx.graph()
-    """
+   """
     tn = len(G.nodes())
     n1 = random.randint(0,tn)
     n2 = random.randint(0,tn)
@@ -256,8 +267,7 @@ def random_trip(G):
 
 def print_trip_info(n1, n2, path, G):
     """
-    Prints and returns out the trip info for the trip: path.
-
+    Prints and returns out the trip info for the trp: path.
     Parameters: (n1, n2, path, G)
         n1 - (lat, lon)
         n2 - (lat, lon)
@@ -294,6 +304,21 @@ def weight(s, e, speed):
         speed - int
     """
     return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / speed
+
+def reweight(s, e, speed, volume):
+    """
+    Returns the weight to be assigned to the edges of the graph.
+    **Traffic Version**
+
+    Parameters: (s, e, d)
+        s - (lat, lon)
+        e - (lat, lon)
+        speed - int
+        volume - int
+    """
+    density = volume/(distance_to_meters(s, e))
+    congestion = density/speed 
+    return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / congestion
 
 def diste(p1, p2):
     """
