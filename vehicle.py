@@ -10,22 +10,28 @@ class Vehicle():
 
     ===Attributes===
     position: (lat, lon)
-    maximum_speed: max speed of the vehicle in km/h
+    maximum_speed: max speed of the vehicle in m/s
     fuel: km remaining before charge/refuel
-    current_speed: current speed of the vehicle in km/h
+    current_speed: current speed of the vehicle in m/s
+    acceleration: current acceleration fo the vehicle in m/s^2
+    angle: angle the vehicle is pointing in
     available: if the vehicle is available for a trip
     seats: the number of seats in the vehicle
     trips: list of trip dictionaries (keys: "starting", "ending", "path")
+    id: number representing the vehicle
     """
     position: tuple
     maximum_speed: int
     fuel: int
     current_speed: int
+    acceleration: float
+    angle: float
     available: bool
     seats: int
     trips: list
+    id: int
 
-    def __init__(self, position, maximum_speed, fuel, current_speed, available, seats):
+    def __init__(self, position, maximum_speed, fuel, current_speed, available, seats, id=0):
         self.position = position
         self.maximum_speed = maximum_speed
         self.fuel = fuel
@@ -35,6 +41,7 @@ class Vehicle():
         self.available = available
         self.seats = seats
         self.trips = []
+        self.id = id
 
     def is_available(self):
         """
@@ -57,29 +64,33 @@ class Vehicle():
             p - (lat, lon)
             heuristic - callable
         """
-        if self.available:
+        if self.available and distance_to_meters(self.position, p) < 3000:
             closest_intersection_to_pos = find_closest_node(G, self.position)
             closest_intersection_to_p = find_closest_node(G, p)
-            path = nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_p, heuristic)
-            return print_trip_info(closest_intersection_to_pos, closest_intersection_to_p, path, G)[2]
+            try:
+                path = nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_p, heuristic)
+                return print_trip_info(closest_intersection_to_pos, closest_intersection_to_p, path, G)[2]
+            except:
+                print("No path")
         return float("inf")
 
-    def assign_trip(self, G, starting, ending, heuristic):
+    def assign_trip(self, G, trip, heuristic):
         """
         Assign a trip to this vehicle.
 
         Parameters: (self, G, starting, ending, heursitic)
             G - networkx.graph()
-            starting - (lat, lon)
-            ending - (lat, lon)
+            trip - trip
             heuristic - callable
         """
+        starting = trip[0]
+        ending = trip[1]
         closest_intersection_to_pos = find_closest_node(G, self.position)
         closest_intersection_to_starting = find_closest_node(G, starting)
         closest_intersection_to_ending = find_closest_node(G, ending)
         trip = {"starting": starting, "ending": ending, "path": nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_starting, heuristic)[:-1] + nx.astar_path(G, closest_intersection_to_starting, closest_intersection_to_ending, heuristic)}
         self.trips.append(trip)
-        print_trip_info(closest_intersection_to_pos, closest_intersection_to_ending, self.trips[0]["path"], G)
+        print_trip_info(closest_intersection_to_pos, closest_intersection_to_ending, self.trips[0]["path"], G, True)
         self.available = False
 
     def complete_trip(self):
@@ -96,15 +107,26 @@ class Vehicle():
             # Find place to refuel and setup trip
 
     def move(self, G):
+        """
+        Moves the vehicle (equivalent of 1 second of traveling).
+
+        Parameters: (self, G)
+            G - networkx.graph()
+        """
         #self.current_speed += self.acceleration
         # Idea: travel as many full edges as we can and then do part of one edge.
+        if not len(self.trips):
+            return
         can_move = self.current_speed
         current = 1
         nodes = len(self.trips[0]["path"])
         # Go as far from node to node as possible with only full trips
         while current < nodes:
             #dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
-            dist = G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048
+            try:
+                dist = G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048
+            except:
+                dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
             if can_move > dist:
                 can_move -= dist
             else:
@@ -242,12 +264,15 @@ class Vehicle():
         #     if len(self.trips[0]["path"]) == 1:
         #         self.complete_trip()
 
+    def __eq__(self, other):
+        return self
+
 
 # === Main ===
 if __name__ == "__main__":
     v1 = Vehicle((40.74345679662331, -73.72770035929027), 200.0, 10.0, 20.0, True, 4)
     from astar import load_data
-    G, trips = load_data(reset=False, graph=False, trips=False, abbr=False)
+    G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     plt.ion()
     #plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
@@ -259,7 +284,7 @@ if __name__ == "__main__":
     #         x1, y1 = distance_to_meters((40.74345679662331, -73.72770035929027), (edge[0][0], -73.72770035929027)), distance_to_meters((40.74345679662331, -73.72770035929027), (40.74345679662331, edge[0][1]))
     #         x2, y2 = distance_to_meters((40.74345679662331, -73.72770035929027), (edge[1][0], -73.72770035929027)), distance_to_meters((40.74345679662331, -73.72770035929027), (40.74345679662331, edge[1][1]))
     #         plt.plot((y1, y2), (x1, x2), 'c.-')
-    v1.assign_trip(G, (40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528), diste)
+    v1.assign_trip(G, [(40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)], diste)
     total = 0
     while not v1.available:
         v1.move(G)
