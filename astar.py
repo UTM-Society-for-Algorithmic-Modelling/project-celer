@@ -17,6 +17,7 @@ def main():
     """
     G, trips = load_data(reset=True, graph=False, trips=False, abbr=False)
     t = random_trip(G)
+    #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=t)
     process_trips(G, trips=[t], heuristic=diste)
     plt.axis('equal')
@@ -100,7 +101,6 @@ def pickle_graph(abbr, traffic_dict):
                 divider = 25
             seg_start = seg_start[1], seg_start[0]
             seg_end = seg_end[1], seg_end[0]
-
             if street in traffic_dict:
                 volume_total = traffic_dict[street]
                 volume_count = volume_total[time]
@@ -139,19 +139,26 @@ def pickle_trips(G):
     for trip in trips_raw.values():
         starting = (float(trip["pickup_latitude"]), float(trip["pickup_longitude"]))
         ending = (float(trip["dropoff_latitude"]), float(trip["dropoff_longitude"]))
-        n1 = (None, float("inf"))
-        n2 = (None, float("inf"))
-        for node in G.nodes():
-            closeness = abs(starting[0] - node[0]) + abs(starting[1] - node[1])
-            if closeness < n1[1]:
-                n1 = (node, closeness)
-            closeness = abs(ending[0] - node[0]) + abs(ending[1] - node[1])
-            if closeness < n2[1]:
-                n2 = (node, closeness)
-        trips.append((n1[0], n2[0]))
+        n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
+        trips.append((n1, n2))
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
+
+def find_closest_node(G, starting):
+    """
+    Finds the closest node to starting.
+
+    Parameters: (G, starting)
+        G - networkx.graph()
+        starting - (lat, lon)
+    """
+    n1 = (None, float("inf"))
+    for node in G.nodes():
+        closeness = abs(starting[0] - node[0]) + abs(starting[1] - node[1])
+        if closeness < n1[1]:
+            n1 = (node, closeness)
+    return n1[0]
 
 def street_variations(s, abbr):
     """
@@ -234,7 +241,6 @@ def process_trips(G, trips, heuristic):
             print(f"Cost of trip: {nx.astar_path_length(G, n1, n2, heuristic)}")
             print(f"Nodes in trip: {len(path)}")
             print_trip_info(n1, n2, path, G)
-            
             draw_path(path)
 
         except:
@@ -262,7 +268,6 @@ def random_trip(G):
 def print_trip_info(n1, n2, path, G):
     """
     Prints and returns out the trip info for the trp: path.
-
     Parameters: (n1, n2, path, G)
         n1 - (lat, lon)
         n2 - (lat, lon)
@@ -275,7 +280,7 @@ def print_trip_info(n1, n2, path, G):
     distances = []
     time = 0
     for p in range(len(path)-1):
-        speed = round( 1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
+        speed = round(1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
         if G[path[p]][path[p+1]]["distance"] not in distances:
             distances.append(G[path[p]][path[p+1]]["distance"])
             speeds[speed] = speeds.get(speed, 0) + 1
