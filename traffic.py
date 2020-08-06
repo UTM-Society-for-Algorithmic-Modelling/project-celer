@@ -34,30 +34,30 @@ def clean_data(path):
 			writer.writerow(processed_line)
 		
 def extract_data_a(path):
-	"""
-        ******Reads manually formatted files**********
-        Given clean CSV in format: Roadway Name, Traffic Data per hour (24 HR TIME, 24 HRS)
-        Returns a dictionary in the format: {'Roadway_Name': ['Traffic Figures from 0-23 HR']}
+    """
+    ******Reads manually formatted files**********
+    Given clean CSV in format: Roadway Name, Traffic Data per hour (24 HR TIME, 24 HRS)
+    Returns a dictionary in the format: {'Roadway_Name': ['Traffic Figures from 0-23 HR']}
 	
-	Duplicate keys, value pairs are merged and averaged.
+    Duplicate keys, value pairs are merged and averaged.
 
-        Parameters: (csvfile)
-        csvfile - string
-        """
-	traffic = {}
-	with open(path, newline='') as csvfile:
-		reader = csv.reader(csvfile)
-		for row in reader:
-			row[0]=row[0].upper()
-			if(row[0]) not in traffic:
-				traffic[row[0]]=row[1:]
-			else:
-				old_list = traffic[row[0]]
-				new_values = row[1:]
-				traffic[row[0]]=merge_lists(old_list, new_values)
+    Parameters: (csvfile)
+    csvfile - string
+    """
+    traffic = {}
+    with open(path, newline='') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            row[0]=row[0].upper()
+            if(row[0]) not in traffic:
+                traffic[row[0]]=row[1:]
+            else:
+                old_list = traffic[row[0]]
+                new_values = row[1:]
+                traffic[row[0]]=merge_lists(old_list, new_values)
 
-	del traffic['ROADWAY NAME']
-	return traffic
+    del traffic['ROADWAY NAME']
+    return traffic
 	
 def extract_data_b():
 	"""
@@ -75,19 +75,24 @@ def extract_data_b():
 		#for i in range(1, (len(rows)//25)):
 		
 def merge_lists(old_list, new_list):
-	"""
-#	Returns an averaged list of traffic values in a 24HR window, given two lists. 
-#
-#	Parameters: (old_list, new_list)
-#	old_list = list
-#	new_list = list	
-	"""
-	final = []
-	for i in range(24):
-		x = (int(old_list[i]) + int(new_list[i]))
-		final.append(x//2)
-	
-	return final
+    """
+    Returns an averaged list of traffic values in a 24HR window, given two lists. 
+
+    Parameters: (old_list, new_list)
+    old_list = list
+    new_list = list	
+    """
+    final = []
+    for i in range(24):
+        if(not old_list[i]):
+            old_list[i]=0
+        if(not new_list[i]):
+            new_list[i]=0
+
+        x = (int(old_list[i]) + int(new_list[i]))
+        final.append(x//2)
+
+    return final
 
 def process_traffic_old(G, trips):
     """
