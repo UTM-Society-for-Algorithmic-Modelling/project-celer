@@ -137,8 +137,8 @@ def pickle_trips(G):
             trips.append((n1, n2, temp["tpep_pickup_datetime"], temp["tpep_dropoff_datetime"]))
             t += 1
             #print(t)
-            if t == 1000:
-                break
+            # if t == 1000:
+            #     break
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
