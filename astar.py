@@ -123,7 +123,6 @@ def pickle_trips(G):
         G - networkx.graph()
     """
     trips = []
-    # trips_raw = {}
     with open("NYC/2015_taxi_data.csv") as rFile:
         first_line = rFile.readline().rstrip("\n").split(",")
         t = 0
@@ -136,17 +135,10 @@ def pickle_trips(G):
             ending = (float(temp["dropoff_latitude"]), float(temp["dropoff_longitude"]))
             n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
             trips.append((n1, n2, temp["tpep_pickup_datetime"], temp["tpep_dropoff_datetime"]))
-            # trips_raw[t] = temp
             t += 1
             #print(t)
             if t == 1000:
                 break
-    # trips = []
-    # for trip in trips_raw.values():
-    #     starting = (float(trip["pickup_latitude"]), float(trip["pickup_longitude"]))
-    #     ending = (float(trip["dropoff_latitude"]), float(trip["dropoff_longitude"]))
-    #     n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
-    #     trips.append((n1, n2, trip["tpep_pickup_datetime"], trip["tpep_dropoff_datetime"]))
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
