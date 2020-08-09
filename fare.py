@@ -12,7 +12,6 @@ def calculate_fare_NYC(distance, rush, overnight):
 	Per metre: $0.00155344
 	Rush Hour: +$1.00
 	Overnight: +$0.50
-	*Optional: Wait Time: $0.25
 	
 	f(x)=(0.00155344x+2.50)
 	g(x)=(0.00155344x+2.50)+1
@@ -65,8 +64,3 @@ def cost(distance):
 	amount = (d * price)/fuel_e
 	return price * amount
 	
-if __name__ == "__main__":
-	print("Trip A")
-	x = calculate_fare_NYC(6920.18, False, False)
-	p = profit(x, 6920.18)
-	print(p)
