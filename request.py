@@ -17,6 +17,8 @@ class Request():
 		self.max_time = max_time
 		self.seats = seats
 		self.selected = False
+		self.rush = False
+		self.night = False
 
 	def is_selected(self):
 		return self.selected
@@ -36,3 +38,14 @@ class Request():
 	def select(self):
 		self.selected = True
 
+	def rush(self):
+		self.rush = True
+
+	def night(self):
+		self.night = True
+
+	def is_rush(self):
+		return self.rush
+
+	def is_night(self):
+		return self.night

@@ -1,5 +1,4 @@
 import math
-
 #This sets and uses a fare function to calculate the profit made during runs/trips.
 #live
 
@@ -39,6 +38,7 @@ def profit(fare, distance):
 	"""
 	Return profit using profit function: p(x)=r(x)-c(x).
 	Uses a standard fuel cost estimate.
+        Returns: float 
 
 	==Parameters==
 	fare: float
@@ -48,7 +48,7 @@ def profit(fare, distance):
 
 def cost(distance):
 	"""
-	Calculates the cost to run a trip. Returns a c(x) function.
+	Calculates the cost to run a trip. Returns a float.
 
 	July 21, 2020: $0.89/L of fuel in NYC 
 	Fuel Efficiency (Avg Estimate): 9.4L/100 km  
