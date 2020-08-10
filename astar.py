@@ -6,6 +6,7 @@ import math
 import random
 import traffic
 import pickle
+from datetime import datetime
 try:
     from itertools import izip as zip
 except ImportError:
@@ -15,10 +16,10 @@ def main():
     """
     Main function
     """
-    G, trips = load_data(reset=True, graph=False, trip=False, abbr=False)
+    G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     t = random_trip(G)
     #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
-    draw_graph(G, bounds=t)
+    draw_graph(G, bounds=(t["starting_pos"], t["ending_pos"]))
     process_trips(G, trips=[t], heuristic=diste)
     plt.axis('equal')
     plt.show()
@@ -134,7 +135,7 @@ def pickle_trips(G):
             starting = (float(temp["pickup_latitude"]), float(temp["pickup_longitude"]))
             ending = (float(temp["dropoff_latitude"]), float(temp["dropoff_longitude"]))
             n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
-            trips.append((n1, n2, temp["tpep_pickup_datetime"], temp["tpep_dropoff_datetime"]))
+            trips.append({"starting_pos": n1, "ending_pos": n2, "pickup_time": datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S"), "dropoff_time": datetime.strptime(temp["tpep_dropoff_datetime"], "%Y-%m-%d %H:%M:%S")})
             t += 1
             #print(t)
             if t == 1000:
@@ -229,8 +230,8 @@ def process_trips(G, trips, heuristic):
         node - (lat, lon)
     """
     for trip in trips:
-        n1 = trip[0]
-        n2 = trip[1]
+        n1 = trip["starting_pos"]
+        n2 = trip["ending_pos"]
         print(f"Going from {n1} to {n2}")
         print("Calculating traffic...")
         try:
@@ -260,7 +261,7 @@ def random_trip(G):
         if n2 == tn:
             n2 = node
         tn += 1
-    return n1, n2
+    return {"starting_pos": n1, "ending_pos": n2}
 
 def print_trip_info(n1, n2, path, G, pr=False):
     """

@@ -2,6 +2,7 @@ from astar import diste, print_trip_info, find_closest_node, draw_graph, distanc
 import networkx as nx
 import math
 import matplotlib.pyplot as plt
+from datetime import timedelta
 
 
 class Vehicle():
@@ -29,6 +30,7 @@ class Vehicle():
     available: bool
     seats: int
     trips: list
+    log: list
     id: int
 
     def __init__(self, position, maximum_speed, fuel, current_speed, available, seats, id=0):
@@ -41,6 +43,7 @@ class Vehicle():
         self.available = available
         self.seats = seats
         self.trips = []
+        self.log = []
         self.id = id
 
     def is_available(self):
@@ -83,13 +86,15 @@ class Vehicle():
             trip - trip
             heuristic - callable
         """
-        starting = trip[0]
-        ending = trip[1]
+        starting = trip["starting_pos"]
+        ending = trip["ending_pos"]
+        time = trip.get("pickup_time", None)
         closest_intersection_to_pos = find_closest_node(G, self.position)
         closest_intersection_to_starting = find_closest_node(G, starting)
         closest_intersection_to_ending = find_closest_node(G, ending)
-        trip = {"starting": starting, "ending": ending, "path": nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_starting, heuristic)[:-1] + nx.astar_path(G, closest_intersection_to_starting, closest_intersection_to_ending, heuristic)}
+        trip = {"starting": starting, "ending": ending, "start_time": time, "end_time": time, "path": nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_starting, heuristic)[:-1] + nx.astar_path(G, closest_intersection_to_starting, closest_intersection_to_ending, heuristic)}
         self.trips.append(trip)
+        self.log.append(trip.copy())
         print_trip_info(closest_intersection_to_pos, closest_intersection_to_ending, self.trips[0]["path"], G, True)
         self.available = False
 
@@ -118,6 +123,8 @@ class Vehicle():
         # Idea: travel as many full edges as we can and then do part of one edge.
         if not len(self.trips):
             return
+        if self.log[-1]["end_time"] is not None:
+            self.log[-1]["end_time"] += timedelta(seconds=s)
         can_move = s
         current = 1
         nodes = len(self.trips[0]["path"])
@@ -176,7 +183,7 @@ class Vehicle():
         y_move = can_move * math.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         #print(self.angle, x_dif, y_dif, x_move, y_move)
         if abs(x_dif) <= abs(x_move) or abs(y_dif) <= abs(y_move):
-            print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
+            # print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
             self.position = to
         else:
             # x1, y1 = distance_to_meters((40.74345679662331, -73.72770035929027), (self.position[0], -73.72770035929027)), distance_to_meters((40.74345679662331, -73.72770035929027), (40.74345679662331, self.position[1]))
@@ -185,7 +192,7 @@ class Vehicle():
             lon_per_1d = math.cos(self.position[0]) * 111321
             #print(to[0] - self.position[0], to[1] - self.position[1], x_move / lat_per_1d, y_move / lon_per_1d)
             if abs(to[0] - self.position[0]) <= abs(x_move / lat_per_1d) or abs(to[1] - self.position[1]) <= abs(y_move / lon_per_1d):
-                print("T2", self.angle, "\n", to[0] - self.position[0], to[1] - self.position[1], "\n", x_move / lat_per_1d, y_move/lon_per_1d, "\n")
+                # print("T2", self.angle, "\n", to[0] - self.position[0], to[1] - self.position[1], "\n", x_move / lat_per_1d, y_move/lon_per_1d, "\n")
                 self.position = to
             else:
                 self.position = self.position[0] + x_move / lat_per_1d, self.position[1] + y_move / lon_per_1d
@@ -288,7 +295,7 @@ if __name__ == "__main__":
     plt.ion()
     #plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
-    v1.assign_trip(G, [(40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)], diste)
+    v1.assign_trip(G, {"starting_pos": (40.74345679662331, -73.72770035929027), "ending_pos": (40.77214782804362, -73.76426798716528)}, diste)
     total = 0
     while not v1.available:
         v1.move(G,1)
