@@ -1,8 +1,11 @@
 from collections import deque
 import request
 import scheduling
+import astar
 import fare
 #Determine set of requests suitable for scheduling. 
+
+maximum = 3000
 
 def admission_control(requests, vehicles):
     """
@@ -14,12 +17,11 @@ def admission_control(requests, vehicles):
     vehicles: list of vehicle fleet  
     """
     #set up requests stacks for faster access, and graph
-    maximum = 3000 #DEFINE 
     requests_stack = deque()
     current_request = None #R of i
     requests_r = requests[::-1]
     final_trips = {}
-    G, t = load_data(reset=False, graph=False, trip=False, abbr=False)
+    G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
     
     for i in range(0, len(requests_r)):
         requests_stack.append(requests_r[i])
@@ -43,7 +45,7 @@ def admission_control(requests, vehicles):
     
     return final_trips
 
-def genetic_algorithm(request, tabu):
+def genetic_algorithm(request, tabu, G):
     """
     Optimization. Generates the best trip that maximizes profit based on fuel efficiency, distance, time and traffic. 
     Returns a [request, vehicle ID]
@@ -51,6 +53,7 @@ def genetic_algorithm(request, tabu):
     
     ==Parameters==
     request: a request obj
+    G: A networkx graph
     tabu: a list of valid potential vehicles 
     """
     current_fitness = -1
@@ -86,11 +89,7 @@ def get_distance(path, n1, n2, G):
 
     return round(sum(distances) * 0.3048, 2)
 
-#if __name__ == "__main__":
-    #Sample Test
-    #test_requests = []
-    #test_vehicles = []
-    #d = admission_control(test_requests, test_vehicles)
-    #print(test_requests) 
-    #print(test_vehicles)
-    #print(d)
+if __name__ == "__main__":
+    test_a = []
+    test_b = []
+    admission_control(test_a, test_b)
