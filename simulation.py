@@ -17,7 +17,7 @@ except:
 
 # Load graph and trips
 G, trips = None, None
-if sys.argv[2] == "True":
+if len(sys.argv) == 3 and sys.argv[2] == "True":
     G, trips = load_data(reset=True, graph=False, trip=False, abbr=False)
 else:
     G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
@@ -38,18 +38,23 @@ time = datetime(2015, 1, 1, 0, 0)
 # 2,678,400 seconds per 31 day month
 print(total_trips)
 t = 0
+interval = 1
 while time < datetime(2015, 1, 20, 0, 0):
     while t < total_trips:
-        if time == datetime.strptime(trips[t][2], "%Y-%m-%d %H:%M:%S"): # time = time trip was assigned IRL
+        if time == trips[t]["pickup_time"]: # time = time trip was assigned IRL
             scheduling.find_assign_trip(trips[t], diste)
             t += 1
             print("Trip", t)
-        if time > datetime.strptime(trips[t][2], "%Y-%m-%d %H:%M:%S"):
+        if time > trips[t]["pickup_time"]:
             t += 1
             print("skip", t)
         else:
             break
     #print(time)
-    scheduling.move()
+    interval += 1
+    if interval == 5:
+        scheduling.move(5)
+        interval = 0
     time += timedelta(seconds=1)
+print(scheduling.get_logs())
 print(len(scheduling.log))

@@ -6,6 +6,7 @@ import math
 import random
 import traffic
 import pickle
+from datetime import datetime
 try:
     from itertools import izip as zip
 except ImportError:
@@ -15,10 +16,10 @@ def main():
     """
     Main function
     """
-    G, trips = load_data(reset=True, graph=False, trip=False, abbr=False)
+    G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     t = random_trip(G)
     #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
-    draw_graph(G, bounds=t)
+    draw_graph(G, bounds=(t["starting_pos"], t["ending_pos"]))
     process_trips(G, trips=[t], heuristic=diste)
     plt.axis('equal')
     plt.show()
@@ -108,7 +109,7 @@ def pickle_graph(abbr, traffic_dict):
             else:
                 w = weight(seg_start, seg_end, divider)
 
-            G.add_edge(seg_start, seg_end, weight = w, distance=feature["properties"]["shape_leng"])       
+            G.add_edge(seg_start, seg_end, weight=w, distance=feature["properties"]["shape_leng"], speed=divider / 3600 * 1609)       
 
     print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
 
@@ -134,11 +135,11 @@ def pickle_trips(G):
             starting = (float(temp["pickup_latitude"]), float(temp["pickup_longitude"]))
             ending = (float(temp["dropoff_latitude"]), float(temp["dropoff_longitude"]))
             n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
-            trips.append((n1, n2, temp["tpep_pickup_datetime"], temp["tpep_dropoff_datetime"]))
+            trips.append({"starting_pos": n1, "ending_pos": n2, "pickup_time": datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S"), "dropoff_time": datetime.strptime(temp["tpep_dropoff_datetime"], "%Y-%m-%d %H:%M:%S")})
             t += 1
             #print(t)
-            # if t == 1000:
-            #     break
+            if t == 1000:
+                break
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
@@ -229,8 +230,8 @@ def process_trips(G, trips, heuristic):
         node - (lat, lon)
     """
     for trip in trips:
-        n1 = trip[0]
-        n2 = trip[1]
+        n1 = trip["starting_pos"]
+        n2 = trip["ending_pos"]
         print(f"Going from {n1} to {n2}")
         print("Calculating traffic...")
         try:
@@ -260,7 +261,7 @@ def random_trip(G):
         if n2 == tn:
             n2 = node
         tn += 1
-    return n1, n2
+    return {"starting_pos": n1, "ending_pos": n2}
 
 def print_trip_info(n1, n2, path, G, pr=False):
     """
@@ -278,17 +279,17 @@ def print_trip_info(n1, n2, path, G, pr=False):
     distances = []
     time = 0
     for p in range(len(path)-1):
-        speed = round(1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
+        speed = round(G[path[p]][path[p+1]]["speed"], 2)
         if G[path[p]][path[p+1]]["distance"] not in distances:
             distances.append(G[path[p]][path[p+1]]["distance"])
             speeds[speed] = speeds.get(speed, 0) + 1
-            time += G[path[p]][path[p+1]]["distance"] * 0.3048 / (speed * 1609.34)
+            time += G[path[p]][path[p+1]]["distance"] * 0.3048 / speed
     if pr:
-        print(f"Speeds (mph): {speeds}")
+        print(f"Speeds (m/s): {speeds}")
         print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
         print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
-        print(f"Time (minutes): {round(time * 60, 2)}")
-    return speeds, round(sum(distances) * 0.3048, 2), round(time * 60, 2)
+        print(f"Time (minutes): {round(time / 60, 2)}")
+    return speeds, round(sum(distances) * 0.3048, 2), round(time / 60, 2)
 
 
 
