@@ -130,24 +130,24 @@ class Vehicle():
             dist = abs(distance_to_meters(self.position, self.trips[0]["path"][current])) / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"])
             # print(dist, can_move)
             # print(G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048, (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"] * 1609 / 3600))
-            skip = dist
-            print(can_move, dist)
+            # skip = dist
+            #print(can_move, dist)
             if can_move >= dist:
                 can_move -= dist
-                while current < nodes and skip == abs(distance_to_meters(self.position, self.trips[0]["path"][current])) / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]):
-                    current += 1
-                    self.position = self.trips[0]["path"][current-2]
+                # while current < nodes and skip == abs(distance_to_meters(self.position, self.trips[0]["path"][current])) / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]):
+                #     self.position = self.trips[0]["path"][current]
+                #     current += 1
             else:
                 break
+            self.position = self.trips[0]["path"][current]
             current += 1
-            self.position = self.trips[0]["path"][current-2]
-        #print(current)
+        #print(current, nodes)
         if current == nodes:
             self.position = self.trips[0]["path"][-1]
             self.complete_trip()
             return
         # Remove nodes we just traveled
-        for i in range(current-2):
+        for i in range(current-1):
             self.trips[0]["path"].pop(0)
         # Travel part of of edge but not full
         to = self.trips[0]["path"][1] 
@@ -163,17 +163,17 @@ class Vehicle():
                 self.angle = -1 * math.pi / 2
         else:
             self.angle = math.atan(abs(x_dif / y_dif))
-            print(self.angle)
             if y_dif < 0:
                 if x_dif > 0:
                     self.angle += math.pi / 2
                 else:
                     self.angle += math.pi
             else:
-                if x_dif > 0:
+                if x_dif < 0:
                     self.angle -= math.pi / 2
-        x_move = can_move * math.sin(self.angle) * G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]
-        y_move = can_move * math.cos(self.angle) * G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]
+            self.angle += math.pi/2
+        x_move = can_move * math.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
+        y_move = can_move * math.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         #print(self.angle, x_dif, y_dif, x_move, y_move)
         if abs(x_dif) <= abs(x_move) or abs(y_dif) <= abs(y_move):
             print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
@@ -183,7 +183,7 @@ class Vehicle():
             # plt.plot([y1 + y_move], [x1 + x_move], "bo")
             lat_per_1d = 111000
             lon_per_1d = math.cos(self.position[0]) * 111321
-            print(to[0] - self.position[0], to[1] - self.position[1], x_move / lat_per_1d, y_move / lon_per_1d)
+            #print(to[0] - self.position[0], to[1] - self.position[1], x_move / lat_per_1d, y_move / lon_per_1d)
             if abs(to[0] - self.position[0]) <= abs(x_move / lat_per_1d) or abs(to[1] - self.position[1]) <= abs(y_move / lon_per_1d):
                 print("T2", self.angle, "\n", to[0] - self.position[0], to[1] - self.position[1], "\n", x_move / lat_per_1d, y_move/lon_per_1d, "\n")
                 self.position = to
@@ -296,5 +296,5 @@ if __name__ == "__main__":
         plt.draw()
         total+=1
         print(total)
-        plt.pause(0.00001)
+        plt.pause(0.000001)
     plt.show()
