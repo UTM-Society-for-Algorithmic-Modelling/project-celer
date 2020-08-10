@@ -5,7 +5,7 @@ import astar
 import fare
 #Determine set of requests suitable for scheduling. 
 
-maximum = 3000
+maximum_radius = 3000
 
 def admission_control(requests, vehicles):
     """
@@ -60,13 +60,15 @@ def genetic_algorithm(request, tabu, G):
     """
     current_fitness = -1
     vehicle_id = -1
-    
+    path = nx.astar_path(G, request.start, request.end, astar.diste)
+    main_distance = get_distance(path, request.start, request.end, G)
+
     for i in range(0, len(tabu)):
         try:
-            path = nx.astar_path(G, tabu[i].position, request.end, astar.diste)
-            dist = get_distance(path, tabu[i].start, request.end, G)
-            estimated_fare = fare.calculate_fare_NYC(dist, False, False)
-            profit = fare.profit(estimated_fare, dist)
+            arrival_path = nx.astar_path(G, tabu[i].position, request.start, astar.diste)
+            total_distance = get_distance(arrival_path, tabu[i].position, request.start, G) + main_distance
+            estimated_fare = fare.calculate_fare_NYC(total_distance, False, False)
+            profit = fare.profit(estimated_fare, total_distance)
             if profit > current_fitness:
                 current_fitness = profit
                 vehicle_id = tabu[i].id
