@@ -16,4 +16,4 @@ Sources
 2015 Yellow Taxi Data - https://data.cityofnewyork.us/Transportation/2015-Yellow-Taxi-Trip-Data/ba8s-jw6u
 Speed Map - https://data.cityofnewyork.us/Transportation/VZV_Speed-Limits/7n5j-865y
 City Map - https://data.cityofnewyork.us/City-Government/NYC-Street-Centerline-CSCL-/exjm-f27b
-Traffic Data (2014-2018) - https://data.cityofnewyork.us/Transportation/Traffic-Volume-Counts-2014-2018-/ertz-hr4r
+Traffic Data (2014-2018) format: ROADWAYNAME 0-24HRS - https://data.cityofnewyork.us/Transportation/Traffic-Volume-Counts-2014-2018-/ertz-hr4r
