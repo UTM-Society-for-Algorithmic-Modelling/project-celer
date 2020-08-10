@@ -14,31 +14,33 @@ def admission_control(requests, vehicles):
 
     ==Parameters==
     requests: list of requests
-    vehicles: list of vehicle fleet  
+    vehicles: list of vehicles (total fleet)  
     """
-    #set up requests stacks for faster access, and graph
+    #set up graph and request stack for faster access
     requests_stack = deque()
-    current_request = None #R of i
+    current_request = None 
     requests_r = requests[::-1]
     final_trips = {}
     G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
     
     for i in range(0, len(requests_r)):
         requests_stack.append(requests_r[i])
-        print(requests_r[i])
 
     #build a distance based Tabu list to eliminate inadmissible vehicles
+    #run GA to return optimal vehicle, trip pair
     while(requests_stack):
         tabu_vehicles = []
         current_request = requests_stack.pop()
+        
         for i in range(0, len(vehicles)):
             v = vehicles[i]
             loc = current_request.start 
-            if v.available and distance_to_meters(v.position, loc) < maximum:
+            if v.available and astar.distance_to_meters(v.position, loc) < maximum:
                 tabu_vehicles.append(v)
 
-        solution = genetic_algorithm(current_request, tabu_vehicles)
-        final_trips[solution[1]]=solution[0] #does not store invalid trips!!
+        solution = genetic_algorithm(current_request, tabu_vehicles, G)
+        final_trips[solution[1]]=solution[0] #will not store invalid trips!!
+    
     del final_trips[-1]
     for key in final_trips:
         key.selected=True
@@ -53,11 +55,12 @@ def genetic_algorithm(request, tabu, G):
     
     ==Parameters==
     request: a request obj
-    G: A networkx graph
-    tabu: a list of valid potential vehicles 
+    tabu: a list of valid potential vehicles
+    G: a networkx graph 
     """
     current_fitness = -1
     vehicle_id = -1
+    
     for i in range(0, len(tabu)):
         try:
             path = nx.astar_path(G, tabu[i].position, request.end, astar.diste)
