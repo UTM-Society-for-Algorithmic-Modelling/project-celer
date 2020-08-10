@@ -108,7 +108,7 @@ def pickle_graph(abbr, traffic_dict):
             else:
                 w = weight(seg_start, seg_end, divider)
 
-            G.add_edge(seg_start, seg_end, weight = w, distance=feature["properties"]["shape_leng"])       
+            G.add_edge(seg_start, seg_end, weight=w, distance=feature["properties"]["shape_leng"], speed=divider / 3600 * 1609)       
 
     print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
 
@@ -137,8 +137,8 @@ def pickle_trips(G):
             trips.append((n1, n2, temp["tpep_pickup_datetime"], temp["tpep_dropoff_datetime"]))
             t += 1
             #print(t)
-            # if t == 1000:
-            #     break
+            if t == 1000:
+                break
         
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
@@ -278,17 +278,17 @@ def print_trip_info(n1, n2, path, G, pr=False):
     distances = []
     time = 0
     for p in range(len(path)-1):
-        speed = round(1 / G[path[p]][path[p+1]]["weight"] * ((path[p][0] - path[p+1][0]) ** 2 + (path[p][1] - path[p+1][1]) ** 2) ** 0.5)
+        speed = round(G[path[p]][path[p+1]]["speed"], 2)
         if G[path[p]][path[p+1]]["distance"] not in distances:
             distances.append(G[path[p]][path[p+1]]["distance"])
             speeds[speed] = speeds.get(speed, 0) + 1
-            time += G[path[p]][path[p+1]]["distance"] * 0.3048 / (speed * 1609.34)
+            time += G[path[p]][path[p+1]]["distance"] * 0.3048 / speed
     if pr:
-        print(f"Speeds (mph): {speeds}")
+        print(f"Speeds (m/s): {speeds}")
         print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
         print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
-        print(f"Time (minutes): {round(time * 60, 2)}")
-    return speeds, round(sum(distances) * 0.3048, 2), round(time * 60, 2)
+        print(f"Time (minutes): {round(time / 60, 2)}")
+    return speeds, round(sum(distances) * 0.3048, 2), round(time / 60, 2)
 
 
 

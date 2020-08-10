@@ -38,6 +38,7 @@ time = datetime(2015, 1, 1, 0, 0)
 # 2,678,400 seconds per 31 day month
 print(total_trips)
 t = 0
+interval = 1
 while time < datetime(2015, 1, 20, 0, 0):
     while t < total_trips:
         if time == datetime.strptime(trips[t][2], "%Y-%m-%d %H:%M:%S"): # time = time trip was assigned IRL
@@ -50,6 +51,9 @@ while time < datetime(2015, 1, 20, 0, 0):
         else:
             break
     #print(time)
-    scheduling.move()
+    interval += 1
+    if interval == 5:
+        scheduling.move(5)
+        interval = 0
     time += timedelta(seconds=1)
 print(len(scheduling.log))

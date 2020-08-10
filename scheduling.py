@@ -47,11 +47,12 @@ class Scheduling():
         else:
             return False
         
-    def move(self):
+    def move(self, s=1):
         """
-        Moves all vehicles in self.vehicles.
+        Moves all vehicles in self.vehicles, s seconds.
 
-        Parameters: (self)
+        Parameters: (self, s)
+            s - float
         """
         for vehicle in self.vehicles:
-            vehicle.move(self.graph)
+            vehicle.move(self.graph, s)
