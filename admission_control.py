@@ -1,6 +1,5 @@
 from collections import deque
 import request
-import astar
 import scheduling
 import fare
 #Determine set of requests suitable for scheduling. 
