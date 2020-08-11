@@ -41,11 +41,11 @@ t = 0
 interval = 1
 while time < datetime(2015, 1, 20, 0, 0):
     while t < total_trips:
-        if time == trips[t]["pickup_time"]: # time = time trip was assigned IRL
+        if time == trips[t].pickup_time: # time = time trip was assigned IRL
             scheduling.find_assign_trip(trips[t], diste)
             t += 1
             print("Trip", t)
-        if time > trips[t]["pickup_time"]:
+        if time > trips[t].pickup_time:
             t += 1
             print("skip", t)
         else:

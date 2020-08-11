@@ -33,11 +33,11 @@ class Scheduling():
         Assigns best available vehicle manage a certain trip. Returns False if no vehicles are available.
 
         Parameters: (self, trip, heuristic)
-            trip - trip
+            trip - Request()
             heuristic - Callable()
         """
-        s = trip["starting_pos"]
-        e = trip["ending_pos"]
+        s = trip.start
+        e = trip.stop
         times = [(v.distance_to(self.graph, s, heuristic), v) for v in self.vehicles]
         m = min(times)
         if m[0] != "inf":

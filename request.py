@@ -7,17 +7,19 @@ class Request():
     stop: (lat, long)
     max_time: int
     seats: int
+    pickup_time: datetime
     selected: bool
     """
     
-    def __init__(self, start, stop, max_time, seats):
-    	self.start = start
-    	self.stop = end
-    	self.max_time = max_time
-    	self.seats = seats
-    	self.selected = False
-    	self.rush = False
-    	self.night = False
+    def __init__(self, start, stop, max_time, seats, pickup_time):
+        self.start = start
+        self.stop = stop
+        self.max_time = max_time
+        self.seats = seats
+        self.pickup_time = pickup_time
+        self.selected = False
+        self.rush = False
+        self.night = False
 
     def is_selected(self):
     	return self.selected
@@ -28,8 +30,11 @@ class Request():
     def get_time(self):
     	return self.max_time
 
+    def get_pickup_time(self):
+        return self.pickup_time
+
     def stop(self):
-    	return self.get_stop
+    	return self.stop
 
     def start(self):
     	return self.start

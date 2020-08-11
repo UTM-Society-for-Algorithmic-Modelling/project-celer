@@ -2,7 +2,8 @@ from astar import diste, print_trip_info, find_closest_node, draw_graph, distanc
 import networkx as nx
 import math
 import matplotlib.pyplot as plt
-from datetime import timedelta
+from datetime import timedelta, datetime
+from request import Request
 
 
 class Vehicle():
@@ -83,18 +84,17 @@ class Vehicle():
 
         Parameters: (self, G, starting, ending, heursitic)
             G - networkx.graph()
-            trip - trip
+            trip - Request()
             heuristic - callable
         """
-        starting = trip["starting_pos"]
-        ending = trip["ending_pos"]
-        time = trip.get("pickup_time", None)
+        starting = trip.start
+        ending = trip.stop
+        time = trip.pickup_time
         closest_intersection_to_pos = find_closest_node(G, self.position)
         closest_intersection_to_starting = find_closest_node(G, starting)
         closest_intersection_to_ending = find_closest_node(G, ending)
         trip = {"starting": starting, "ending": ending, "start_time": time, "end_time": time, "path": nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_starting, heuristic)[:-1] + nx.astar_path(G, closest_intersection_to_starting, closest_intersection_to_ending, heuristic)}
         self.trips.append(trip)
-        self.log.append(trip.copy())
         print_trip_info(closest_intersection_to_pos, closest_intersection_to_ending, self.trips[0]["path"], G, True)
         self.available = False
 
@@ -106,6 +106,7 @@ class Vehicle():
         """
         self.available = True
         if self.trips:
+            self.log.append(self.trips[0])
             self.trips.pop(0)
         if self.fuel < 50:
             pass
@@ -123,8 +124,8 @@ class Vehicle():
         # Idea: travel as many full edges as we can and then do part of one edge.
         if not len(self.trips):
             return
-        if self.log[-1]["end_time"] is not None:
-            self.log[-1]["end_time"] += timedelta(seconds=s)
+        if self.trips[0]["end_time"] is not None:
+            self.trips[0]["end_time"] += timedelta(seconds=s)
         can_move = s
         current = 1
         nodes = len(self.trips[0]["path"])
@@ -295,7 +296,7 @@ if __name__ == "__main__":
     plt.ion()
     #plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
-    v1.assign_trip(G, {"starting_pos": (40.74345679662331, -73.72770035929027), "ending_pos": (40.77214782804362, -73.76426798716528)}, diste)
+    v1.assign_trip(G, Request((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528), 0, 0, datetime(2015,1,1)), diste)
     total = 0
     while not v1.available:
         v1.move(G,1)
