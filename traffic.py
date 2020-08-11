@@ -3,46 +3,27 @@ import matplotlib.pyplot as plt
 import networkx as nx
 
 def process_traffic(path):
-	"""
-	Process the given clean Traffic Data file.
-	Returns dictionary of street names, with list of traffic volume throughout a 24HR period. 
+    """
+    Process the given clean Traffic Data file.
+    Returns dictionary of street names, with list of traffic volume throughout a 24HR period. 
 
-	Duplicate keys are merged and corresponding values averaged according to time.
+    Duplicate keys are merged and corresponding values averaged according to time.
 
-	Parameters: (path)
-	path - string
-	"""
-	return extract_data_a(path)
-
-def clean_data(path):
-	"""
-	****Formats file into multiline CSV, currently not being used******
-	Using: NYC Traffic Volume Count 2014-2018
-	Takes "traffic_volume.csv" and returns simplified, formatted 'edited_traffic_volume.csv' file (in same directory). Deletes all extra columns except: {Roadway Name, Times}  
-
-	Parameters: (path)
-	path - string
-	"""
-	
-	with open(path, "rt") as csvfile, open("edited_traffic_volume.csv", "wt") as csvout:
-		reader = csv.reader(csvfile, delimiter="\n")
-		writer = csv.writer(csvout, delimiter="\n")
-		rows = list(reader)	
-		for line in rows:
-			output = line[0].split(',')
-			processed_line = output[2:3] + output[7:]
-			writer.writerow(processed_line)
-		
-def extract_data_a(path):
+    Parameters: (path)
+    path - string
+    """
+    return extract_data(path)
+        
+def extract_data(path):
     """
     ******Reads manually formatted files**********
     Given clean CSV in format: Roadway Name, Traffic Data per hour (24 HR TIME, 24 HRS)
     Returns a dictionary in the format: {'Roadway_Name': ['Traffic Figures from 0-23 HR']}
-	
+    
     Duplicate keys, value pairs are merged and averaged.
 
-    Parameters: (csvfile)
-    csvfile - string
+    Parameters: (path)
+    path - string
     """
     traffic = {}
     with open(path, newline='') as csvfile:
@@ -58,29 +39,14 @@ def extract_data_a(path):
 
     del traffic['ROADWAY NAME']
     return traffic
-	
-def extract_data_b():
-	"""
-	******Reads formatted files (python)**********
-	Given CSV in format: Roadway Name, Traffic Data per hour (24 HR TIME, 24 HRS)
-	Returns a dictionary in the format: {'Roadway_Name': ['Traffic Figures from 0-23 HR']}
 
-	Parameters: (csvfile)
-	csvfile - file
-	"""
-	traffic = {}
-	with open("traffic_volume.csv", newline='') as csvfile:
-		reader = csv.reader(csvfile)
-		rows = list(reader)
-		#for i in range(1, (len(rows)//25)):
-		
 def merge_lists(old_list, new_list):
     """
     Returns an averaged list of traffic values in a 24HR window, given two lists. 
 
     Parameters: (old_list, new_list)
     old_list = list
-    new_list = list	
+    new_list = list    
     """
     final = []
     for i in range(24):
@@ -94,27 +60,24 @@ def merge_lists(old_list, new_list):
 
     return final
 
-def process_traffic_old(G, trips):
+def clean_data(path):
     """
-    Processes trips and plots them on the graph
-    ***Traffic Version***
-    Returns possible paths as list of nodes
-    ###
+    OPTIONAL - format dependent.
+    ****Formats file into multiline CSV, currently not being used******
+    Using: NYC Traffic Volume Count 2014-2018
+    Takes "traffic_volume.csv" and returns simplified, formatted 'edited_traffic_volume.csv' file (in same directory). Deletes all extra columns except: {Roadway Name, Times}  
 
-    Parameters: (G, trips)
-        G - networkx.graph()
-        trips - [trips]
-        trip - (node, node)
-        node - (lat, lon)
+    Parameters: (path)
+    path - string
     """
-    for trip in trips:
-        n1 = trip[0]
-        n2 = trip[1]
-        try:
-            paths = all_shortest_paths(G, n1, n2)
-            #path = nx.astar_path(G, n1, n2, heuristic)
-            return paths
 
-        except:
-            print("Couldn't find a path")
+    with open(path, "rt") as csvfile, open("edited_traffic_volume.csv", "wt") as csvout:
+        reader = csv.reader(csvfile, delimiter="\n")
+        writer = csv.writer(csvout, delimiter="\n")
+        rows = list(reader)
+        for line in rows:
+                output = line[0].split(',')
+                processed_line = output[2:3] + output[7:]
+                writer.writerow(processed_line)
+
 
