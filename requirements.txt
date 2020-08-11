@@ -1,0 +1,6 @@
+fiona
+matplotlib
+numpy
+shapely
+networkx
+gdal
