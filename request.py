@@ -22,34 +22,34 @@ class Request():
         self.night = False
 
     def is_selected(self):
-    	return self.selected
+        return self.selected
 
     def get_seats(self):
-    	return self.seats
+        return self.seats
 
     def get_time(self):
-    	return self.max_time
+        return self.max_time
 
     def get_pickup_time(self):
         return self.pickup_time
 
     def stop(self):
-    	return self.stop
+        return self.stop
 
     def start(self):
-    	return self.start
+        return self.start
 
     def select(self):
-    	self.selected = True
+        self.selected = True
 
     def rush(self):
-    	self.rush = True
+        self.rush = True
 
     def night(self):
-    	self.night = True
+        self.night = True
 
     def is_rush(self):
-    	return self.rush
+        return self.rush
 
     def is_night(self):
-    	return self.night
+        return self.night
