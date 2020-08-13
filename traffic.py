@@ -1,6 +1,7 @@
-import csv 
+import csv
 import matplotlib.pyplot as plt
 import networkx as nx
+
 
 def process_traffic(path):
     """
@@ -13,7 +14,8 @@ def process_traffic(path):
     path - string
     """
     return extract_data(path)
-        
+
+
 def extract_data(path):
     """
     ******Reads manually formatted files**********
@@ -29,16 +31,17 @@ def extract_data(path):
     with open(path, newline='') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
-            row[0]=row[0].upper()
-            if(row[0]) not in traffic:
-                traffic[row[0]]=row[1:]
+            row[0] = row[0].upper()
+            if (row[0]) not in traffic:
+                traffic[row[0]] = row[1:]
             else:
                 old_list = traffic[row[0]]
                 new_values = row[1:]
-                traffic[row[0]]=merge_lists(old_list, new_values)
+                traffic[row[0]] = merge_lists(old_list, new_values)
 
     del traffic['ROADWAY NAME']
     return traffic
+
 
 def merge_lists(old_list, new_list):
     """
@@ -50,15 +53,16 @@ def merge_lists(old_list, new_list):
     """
     final = []
     for i in range(24):
-        if(not old_list[i]):
-            old_list[i]=0
-        if(not new_list[i]):
-            new_list[i]=0
+        if not old_list[i]:
+            old_list[i] = 0
+        if not new_list[i]:
+            new_list[i] = 0
 
         x = (int(old_list[i]) + int(new_list[i]))
-        final.append(x//2)
+        final.append(x // 2)
 
     return final
+
 
 def clean_data(path):
     """
@@ -76,8 +80,6 @@ def clean_data(path):
         writer = csv.writer(csvout, delimiter="\n")
         rows = list(reader)
         for line in rows:
-                output = line[0].split(',')
-                processed_line = output[2:3] + output[7:]
-                writer.writerow(processed_line)
-
-
+            output = line[0].split(',')
+            processed_line = output[2:3] + output[7:]
+            writer.writerow(processed_line)
