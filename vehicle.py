@@ -22,7 +22,7 @@ class Vehicle():
     trips: list of trip dictionaries (keys: "starting", "ending", "path")
     id: number representing the vehicle
     """
-    position: tuple
+    position: tuple # Make position a class of its own - edge property, 0-1 for position within edge
     maximum_speed: int
     fuel: int
     current_speed: int
