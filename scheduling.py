@@ -1,5 +1,6 @@
 import networkx as nx
 from vehicle import Vehicle
+from admission_control import admission_control
 
 class Scheduling():
     """
@@ -28,23 +29,28 @@ class Scheduling():
         """
         self.vehicles.append(v)
         
-    def find_assign_trip(self, trip, heuristic):
+    def find_assign_trip(self, trips, heursitic):
         """
-        Assigns best available vehicle manage a certain trip. Returns False if no vehicles are available.
+        Assigns best available vehicle manage certain trips. Returns False if no vehicles are available.
 
         Parameters: (self, trip, heuristic)
-            trip - Request()
+            trips - Request()
             heuristic - Callable()
         """
-        s = trip.start
-        e = trip.stop
-        times = [(v.distance_to(self.graph, s, heuristic), v) for v in self.vehicles]
-        m = min(times)
-        if m[0] != "inf":
-            m[1].assign_trip(self.graph, trip, heuristic)
-            return True
-        else:
-            return False
+        # s = trip.start
+        # e = trip.stop
+        #times = [(v.distance_to(self.graph, s, heuristic), v) for v in self.vehicles]
+        ac = admission_control(trips, self.vehicles)
+        for v in self.vehicles:
+            if v.id in ac.keys():
+                for vid, in ac:
+                    if vid == v.id:
+                        v.assign_trip(self.graph, req, heursitic)
+        # if m[0] != "inf":
+        #     m[1].assign_trip(self.graph, trip, heuristic)
+        #     return True
+        # else:
+        #     return False
         
     def move(self, s=1):
         """

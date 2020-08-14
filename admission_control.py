@@ -40,13 +40,13 @@ def admission_control(requests, vehicles):
         for i in range(0, len(vehicles)):
             v = vehicles[i]
             loc = current_request.start
-            if v.available and astar.distance_to_meters(v.position, loc) < maximum:
+            if v.available and astar.distance_to_meters(v.position, loc) < maximum_radius:
                 tabu_vehicles.append(v)
 
         solution = genetic_algorithm(current_request, tabu_vehicles, G)
         final_trips[solution[1]] = solution[0]  # will not store invalid trips!!
 
-    del final_trips[-1]
+    #del final_trips[-1]
     for key in final_trips:
         key.selected = True
 
@@ -56,8 +56,8 @@ def admission_control(requests, vehicles):
 def genetic_algorithm(request, tabu, G):
     """
     Optimization. Generates the best trip that maximizes profit based on fuel efficiency, distance, time and traffic. 
-    Returns a [request, vehicle ID]
-    If no vehicles can complete an admissible trip for this request, vehicle ID = -1 
+    Returns a [request, vehicle]
+    If no vehicles can complete an admissible trip for this request, vehicle = -1 
     
     ==Parameters==
     request: a request obj
@@ -66,8 +66,8 @@ def genetic_algorithm(request, tabu, G):
     """
     current_fitness = -1
     vehicle_id = -1
-    path = nx.astar_path(G, request.start, request.end, astar.diste)
-    main_distance = get_distance(path, request.start, request.end, G)
+    path = nx.astar_path(G, request.start, request.stop, astar.diste)
+    main_distance = get_distance(path, request.start, request.stop, G)
 
     for i in range(0, len(tabu)):
         try:
