@@ -8,10 +8,12 @@ import traffic
 import pickle
 from datetime import datetime
 from request import Request
+
 try:
     from itertools import izip as zip
 except ImportError:
     pass
+
 
 def main():
     """
@@ -19,11 +21,12 @@ def main():
     """
     G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     t = random_trip(G)
-    #t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
+    # t = ((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))
     draw_graph(G, bounds=(t.start, t.stop))
     process_trips(G, trips=[t], heuristic=diste)
     plt.axis('equal')
     plt.show()
+
 
 # === Load Data ===
 def load_data(reset=False, graph=False, trip=False, abbr=False):
@@ -55,6 +58,7 @@ def load_data(reset=False, graph=False, trip=False, abbr=False):
 
     return G, trips
 
+
 def pickle_graph(abbr, traffic_dict):
     """
     Save the graph in a pickle file.
@@ -77,7 +81,7 @@ def pickle_graph(abbr, traffic_dict):
                 abbr[line.split(" ")[0].upper()] = line.split(" ")[1].upper()
         with open('abbr.pkl', 'wb') as out:
             pickle.dump(abbr, out)
-        
+
     recognized = 0
     unrecognized = 0
 
@@ -87,12 +91,13 @@ def pickle_graph(abbr, traffic_dict):
         street = feature["properties"]["street"]
         for v in street_variations(street, abbr):
             speeds[v] = feature["properties"]["postvz_sl"]
-    
+
     # Create a Graph
     time = random.randint(0, 23)
     G = nx.Graph()
     for feature in fiona.open("NYC/Map/geo_export_24fdfadb-893d-40a0-a751-a76cdefc9bc6.shp"):
-        for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),list(shape(feature["geometry"]).coords)[1:]):
+        for seg_start, seg_end in zip(list(shape(feature["geometry"]).coords),
+                                      list(shape(feature["geometry"]).coords)[1:]):
             street = feature["properties"]["st_label"]
             if street in speeds:
                 recognized += 1
@@ -110,13 +115,16 @@ def pickle_graph(abbr, traffic_dict):
             else:
                 w = weight(seg_start, seg_end, divider)
 
-            G.add_edge(seg_start, seg_end, weight=w, distance=feature["properties"]["shape_leng"], speed=divider / 3600 * 1609)       
+            G.add_edge(seg_start, seg_end, weight=w, distance=feature["properties"]["shape_leng"],
+                       speed=divider / 3600 * 1609)
 
-    print(f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized+recognized) * 100}%.")
+    print(
+        f"Recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized + recognized) * 100}%.")
 
     with open('graph.pkl', 'wb') as out:
-            pickle.dump(G, out)
-    
+        pickle.dump(G, out)
+
+
 def pickle_trips(G):
     """
     Saves the trips in a pickle file.
@@ -136,14 +144,16 @@ def pickle_trips(G):
             starting = (float(temp["pickup_latitude"]), float(temp["pickup_longitude"]))
             ending = (float(temp["dropoff_latitude"]), float(temp["dropoff_longitude"]))
             n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
-            trips.append(Request(n1, n2, 0, int(temp["passenger_count"]), datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S")))
+            trips.append(Request(n1, n2, 0, int(temp["passenger_count"]),
+                                 datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S")))
             t += 1
-            #print(t)
+            # print(t)
             if t == 1000:
                 break
-        
+
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
+
 
 def find_closest_node(G, starting):
     """
@@ -160,9 +170,10 @@ def find_closest_node(G, starting):
             n1 = (node, closeness)
     return n1[0]
 
+
 def street_variations(s, abbr):
     """
-    Returns multiple variations of the street name based on common street term abbriviations.
+    Returns multiple variations of the street name based on common street term abbreviations.
 
     Parameters: (s, abbr)
         s - string
@@ -175,6 +186,7 @@ def street_variations(s, abbr):
                 v = v.replace(a, abbr[a])
                 variations.append(v)
     return variations
+
 
 class ResetPickle(Exception):
     pass
@@ -196,8 +208,9 @@ def draw_graph(g, bounds=((-180, -90), (180, 90))):
     n1 = bounds[0]
     n2 = bounds[1]
     for edge in g.edges():
-        if min(n1[0],n2[0]) < edge[0][0] < max(n1[0],n2[0]) and min(n1[1],n2[1]) < edge[0][1] < max(n1[1],n2[1]):
-            plt.plot((edge[0][1], edge[1][1]), (edge[0][0],edge[1][0]), 'c.-')
+        if min(n1[0], n2[0]) < edge[0][0] < max(n1[0], n2[0]) and min(n1[1], n2[1]) < edge[0][1] < max(n1[1], n2[1]):
+            plt.plot((edge[0][1], edge[1][1]), (edge[0][0], edge[1][0]), 'c.-')
+
 
 def draw_path(path):
     """
@@ -211,11 +224,11 @@ def draw_path(path):
     """
     px = []
     py = []
-    for p in range(len(path)-1):
-        plt.plot((path[p][1], path[p+1][1]), (path[p][0], path[p+1][0]), "m--")
+    for p in range(len(path) - 1):
+        plt.plot((path[p][1], path[p + 1][1]), (path[p][0], path[p + 1][0]), "m--")
         px.append(path[p][1])
         py.append(path[p][0])
-    plt.plot(px,py, 'b.')
+    plt.plot(px, py, 'b.')
 
 
 # === Trips ===
@@ -245,6 +258,7 @@ def process_trips(G, trips, heuristic):
         except:
             print("Couldn't find a path")
 
+
 def random_trip(G):
     """
     Returns a randomly generated trip.
@@ -253,8 +267,8 @@ def random_trip(G):
         G - netwrokx.graph()
    """
     tn = len(G.nodes())
-    n1 = random.randint(0,tn)
-    n2 = random.randint(0,tn)
+    n1 = random.randint(0, tn)
+    n2 = random.randint(0, tn)
     tn = 0
     for node in G.nodes():
         if n1 == tn:
@@ -262,7 +276,8 @@ def random_trip(G):
         if n2 == tn:
             n2 = node
         tn += 1
-    return Request(n1, n2, 0, 0, datetime(2015,1,1))
+    return Request(n1, n2, 0, 0, datetime(2015, 1, 1))
+
 
 def print_trip_info(n1, n2, path, G, pr=False):
     """
@@ -279,19 +294,18 @@ def print_trip_info(n1, n2, path, G, pr=False):
     speeds = {}
     distances = []
     time = 0
-    for p in range(len(path)-1):
-        speed = round(G[path[p]][path[p+1]]["speed"], 2)
-        if G[path[p]][path[p+1]]["distance"] not in distances:
-            distances.append(G[path[p]][path[p+1]]["distance"])
+    for p in range(len(path) - 1):
+        speed = round(G[path[p]][path[p + 1]]["speed"], 2)
+        if G[path[p]][path[p + 1]]["distance"] not in distances:
+            distances.append(G[path[p]][path[p + 1]]["distance"])
             speeds[speed] = speeds.get(speed, 0) + 1
-            time += G[path[p]][path[p+1]]["distance"] * 0.3048 / speed
+            time += G[path[p]][path[p + 1]]["distance"] * 0.3048 / speed
     if pr:
         print(f"Speeds (m/s): {speeds}")
         print(f"Distance (meters?): {round(sum(distances) * 0.3048, 2)}")
         print(f"Euclidean distance (meters): {distance_to_meters(n1, n2)}")
         print(f"Time (minutes): {round(time / 60, 2)}")
     return speeds, round(sum(distances) * 0.3048, 2), round(time / 60, 2)
-
 
 
 # === Heuristics ===
@@ -306,6 +320,7 @@ def weight(s, e, speed):
     """
     return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / speed
 
+
 def reweight(s, e, speed, volume):
     """
     Returns the weight to be assigned to the edges of the graph.
@@ -317,9 +332,10 @@ def reweight(s, e, speed, volume):
         speed - int
         volume - int
     """
-    density = volume/(distance_to_meters(s, e))
-    congestion = density/speed 
+    density = volume / (distance_to_meters(s, e))
+    congestion = density / speed
     return ((s[0] - e[0]) ** 2 + (s[1] - e[1]) ** 2) ** 0.5 / congestion
+
 
 def diste(p1, p2):
     """
@@ -329,7 +345,8 @@ def diste(p1, p2):
         p1 - (lat, lon)
         p2 - (lat, lon)
     """
-    return (pow(abs(p1[0]-p2[0]), 2) + pow(abs(p1[1]-p2[1]), 2)) ** 0.5 / 65
+    return (pow(abs(p1[0] - p2[0]), 2) + pow(abs(p1[1] - p2[1]), 2)) ** 0.5 / 65
+
 
 def distm(p1, p2):
     """
@@ -339,7 +356,7 @@ def distm(p1, p2):
         p1 - (lat, lon)
         p2 - (lat, lon)
     """
-    return abs(p1[0]-p2[0])+ abs(p1[1]-p2[1]) / 65
+    return abs(p1[0] - p2[0]) + abs(p1[1] - p2[1]) / 65
 
 
 # === Helpers ===
@@ -351,14 +368,14 @@ def distance_to_meters(n1, n2):
         n1 - (lat, lon)
         n2 - (lat, lon)
     """
-    radius = 6371000 # Radius of earth
+    radius = 6371000  # Radius of earth
     o1 = n1[0] * math.pi / 180
     o2 = n2[0] * math.pi / 180
-    d1 = (n2[0] - n1[0]) * math.pi /180
-    d2 = (n2[1] - n1[1]) * math.pi /180
+    d1 = (n2[0] - n1[0]) * math.pi / 180
+    d2 = (n2[1] - n1[1]) * math.pi / 180
 
-    a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2/2) * math.sin(d2/2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2 / 2) * math.sin(d2 / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return round(radius * c, 2)
 
 

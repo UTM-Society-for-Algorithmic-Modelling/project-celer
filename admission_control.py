@@ -1,11 +1,16 @@
 from collections import deque
+
+import networkx as nx
+
 import request
 import scheduling
 import astar
 import fare
-#Determine set of requests suitable for scheduling. 
+
+# Determine set of requests suitable for scheduling.
 
 maximum_radius = 3000
+
 
 def admission_control(requests, vehicles):
     """
@@ -16,36 +21,37 @@ def admission_control(requests, vehicles):
     requests: list of requests
     vehicles: list of vehicles (total fleet)  
     """
-    #set up graph and request stack for faster access
+    # Set up graph and request stack for faster access
     requests_stack = deque()
-    current_request = None 
+    current_request = None
     requests_r = requests[::-1]
     final_trips = {}
     G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
-    
+
     for i in range(0, len(requests_r)):
         requests_stack.append(requests_r[i])
 
-    #build a distance based Tabu list to eliminate inadmissible vehicles
-    #run GA to return optimal vehicle, trip pair
-    while(requests_stack):
+    # build a distance based Tabu list to eliminate inadmissible vehicles
+    # run GA to return optimal vehicle, trip pair
+    while requests_stack:
         tabu_vehicles = []
         current_request = requests_stack.pop()
-        
+
         for i in range(0, len(vehicles)):
             v = vehicles[i]
-            loc = current_request.start 
+            loc = current_request.start
             if v.available and astar.distance_to_meters(v.position, loc) < maximum:
                 tabu_vehicles.append(v)
 
         solution = genetic_algorithm(current_request, tabu_vehicles, G)
-        final_trips[solution[1]]=solution[0] #will not store invalid trips!!
-    
+        final_trips[solution[1]] = solution[0]  # will not store invalid trips!!
+
     del final_trips[-1]
     for key in final_trips:
-        key.selected=True
-    
+        key.selected = True
+
     return final_trips
+
 
 def genetic_algorithm(request, tabu, G):
     """
@@ -77,6 +83,7 @@ def genetic_algorithm(request, tabu, G):
 
     return [request, vehicle_id]
 
+
 def get_distance(path, n1, n2, G):
     """
     Given a path of nodes, calculates the total road distance.
@@ -88,11 +95,12 @@ def get_distance(path, n1, n2, G):
     G: road networkx graph
     """
     distances = []
-    for p in range(len(path)-1):
-        if G[path[p]][path[p+1]]["distance"] not in distances:
-            distances.append(G[path[p]][path[p+1]]["distance"])
+    for p in range(len(path) - 1):
+        if G[path[p]][path[p + 1]]["distance"] not in distances:
+            distances.append(G[path[p]][path[p + 1]]["distance"])
 
     return round(sum(distances) * 0.3048, 2)
+
 
 if __name__ == "__main__":
     test_a = []

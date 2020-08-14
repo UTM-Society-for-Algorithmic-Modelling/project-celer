@@ -6,8 +6,8 @@ from vehicle import *
 from astar import load_data, draw_graph
 from random import randint
 
-if len(sys.argv) not in [2,3]:
-        sys.exit("Usage: python simulation.py vehicle_number reset\nvehicle_number - int\nreset - True/False")
+if len(sys.argv) not in [2, 3]:
+    sys.exit("Usage: python simulation.py vehicle_number reset\nvehicle_number - int\nreset - True/False")
 
 # Get start up data
 try:
@@ -32,7 +32,7 @@ for v in range(num_of_vehicles):
 
 # Create timer (in seconds)
 time = datetime(2015, 1, 1, 0, 0)
-#"%m/%d/%y %H:%M:%S", "%m/%d/%y", "%H:%M:%S", "%d %b %y" datetime.strptime(s, keys[key])
+# "%m/%d/%y %H:%M:%S", "%m/%d/%y", "%H:%M:%S", "%d %b %y" datetime.strptime(s, keys[key])
 
 # Start simulation:
 # 2,678,400 seconds per 31 day month
@@ -41,7 +41,7 @@ t = 0
 interval = 1
 while time < datetime(2015, 1, 20, 0, 0):
     while t < total_trips:
-        if time == trips[t].pickup_time: # time = time trip was assigned IRL
+        if time == trips[t].pickup_time:  # time = time trip was assigned IRL
             scheduling.find_assign_trip(trips[t], diste)
             t += 1
             print("Trip", t)
@@ -50,7 +50,7 @@ while time < datetime(2015, 1, 20, 0, 0):
             print("skip", t)
         else:
             break
-    #print(time)
+    # print(time)
     interval += 1
     if interval == 5:
         scheduling.move(5)
