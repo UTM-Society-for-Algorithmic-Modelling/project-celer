@@ -1,7 +1,5 @@
 from collections import deque
-
 import networkx as nx
-
 import request
 import scheduling
 import astar
@@ -12,45 +10,35 @@ import fare
 maximum_radius = 3000
 
 
-def admission_control(requests, vehicles):
+def admission_control(request, vehicles):
     """
-    Given a set of admissible or inadmissible requests. Use a GA to maximize profit and return only admissible requests.
-    Returns a dictionary of optimal, admissible request-trip pairs.
-
+    Given an admissible or inadmissible request: Use a GA to maximize profit and return an optimal request, vehicle pair
+    if admissible.
+ 
+    returns {vehicle ID: request}
     ==Parameters==
-    requests: list of requests
+    request: Request() object
     vehicles: list of vehicles (total fleet)  
     """
-    # Set up graph and request stack for faster access
-    requests_stack = deque()
-    current_request = None
-    requests_r = requests[::-1]
-    final_trips = {}
+   
+    final_trip = {}
+    tabu_vehicles = [] #Build a distance based Tabu list for possible vehicles
     G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
 
-    for i in range(0, len(requests_r)):
-        requests_stack.append(requests_r[i])
+    for i in range(0, len(vehicles)):
+        v = vehicles[i]
+        loc = request.start
+        if v.available and astar.distance_to_meters(v.position, loc) < maximum_radius:
+            tabu_vehicles.append(v)
 
-    # build a distance based Tabu list to eliminate inadmissible vehicles
-    # run GA to return optimal vehicle, trip pair
-    while requests_stack:
-        tabu_vehicles = []
-        current_request = requests_stack.pop()
+        solution = genetic_algorithm(request, tabu_vehicles, G)
+        final_trip[solution[1]] = solution[0]  # will not store invalid trips!!
 
-        for i in range(0, len(vehicles)):
-            v = vehicles[i]
-            loc = current_request.start
-            if v.available and astar.distance_to_meters(v.position, loc) < maximum_radius:
-                tabu_vehicles.append(v)
+    for key in final_trip:
+        r = final_trip[key]
+        r.select()
 
-        solution = genetic_algorithm(current_request, tabu_vehicles, G)
-        final_trips[solution[1]] = solution[0]  # will not store invalid trips!!
-
-    #del final_trips[-1]
-    for key in final_trips:
-        key.selected = True
-
-    return final_trips
+    return final_trip
 
 
 def genetic_algorithm(request, tabu, G):
@@ -66,8 +54,11 @@ def genetic_algorithm(request, tabu, G):
     """
     current_fitness = -1
     vehicle_id = -1
-    path = nx.astar_path(G, request.start, request.stop, astar.diste)
-    main_distance = get_distance(path, request.start, request.stop, G)
+    try:
+        path = nx.astar_path(G, request.start, request.stop, astar.diste)
+        main_distance = get_distance(path, request.start, request.stop, G)
+    except:
+        return [request, -1]
 
     for i in range(0, len(tabu)):
         try:

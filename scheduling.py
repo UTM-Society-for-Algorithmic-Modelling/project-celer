@@ -29,7 +29,7 @@ class Scheduling():
         """
         self.vehicles.append(v)
         
-    def find_assign_trip(self, trips, heursitic):
+    def find_assign_trip(self, trips, heuristic):
         """
         Assigns best available vehicle manage certain trips. Returns False if no vehicles are available.
 
@@ -40,12 +40,14 @@ class Scheduling():
         # s = trip.start
         # e = trip.stop
         #times = [(v.distance_to(self.graph, s, heuristic), v) for v in self.vehicles]
-        ac = admission_control(trips, self.vehicles)
+        ac = admission_control(trips, self.vehicles) #{vehicle ID: request()}
         for v in self.vehicles:
             if v.id in ac.keys():
-                for vid, in ac:
-                    if vid == v.id:
-                        v.assign_trip(self.graph, req, heursitic)
+                v.assign_trip(self.graph, ac[v.id], heuristic)
+
+
+                #if vid == v.id:
+                    #v.assign_trip(self.graph, req, heursitic)
         # if m[0] != "inf":
         #     m[1].assign_trip(self.graph, trip, heuristic)
         #     return True
