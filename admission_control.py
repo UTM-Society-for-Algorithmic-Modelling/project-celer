@@ -10,7 +10,7 @@ import fare
 maximum_radius = 3000
 
 
-def admission_control(request, vehicles):
+def admission_control(request, vehicles, G):
     """
     Given an admissible or inadmissible request: Use a GA to maximize profit and return an optimal request, vehicle pair
     if admissible.
@@ -23,7 +23,7 @@ def admission_control(request, vehicles):
    
     final_trip = {}
     tabu_vehicles = [] #Build a distance based Tabu list for possible vehicles
-    G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
+    #G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
 
     for i in range(0, len(vehicles)):
         v = vehicles[i]

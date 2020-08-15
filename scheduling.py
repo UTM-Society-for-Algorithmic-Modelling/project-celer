@@ -40,7 +40,7 @@ class Scheduling():
         # s = trip.start
         # e = trip.stop
         #times = [(v.distance_to(self.graph, s, heuristic), v) for v in self.vehicles]
-        ac = admission_control(trips, self.vehicles) #{vehicle ID: request()}
+        ac = admission_control(trips, self.vehicles, self.graph) #{vehicle ID: request()}
         for v in self.vehicles:
             if v.id in ac.keys():
                 v.assign_trip(self.graph, ac[v.id], heuristic)
