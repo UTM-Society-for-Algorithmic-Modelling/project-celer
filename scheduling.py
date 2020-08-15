@@ -45,6 +45,8 @@ class Scheduling():
             if v.id in ac.keys():
                 v.assign_trip(self.graph, ac[v.id], heuristic)
 
+        ##Note: AC key will be -1 if this request is not possible/no profit/no cars
+
 
                 #if vid == v.id:
                     #v.assign_trip(self.graph, req, heursitic)
