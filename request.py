@@ -53,3 +53,16 @@ class Request():
 
     def is_night(self):
         return self.night
+
+    def __lt__(self, other):
+        return self.pickup_time < other.pickup_time
+
+    def __eq__(self, other):
+        return self.pickup_time == other.pickup_time
+
+    def __gt__(self, other):
+        return self.pickup_time > other.pickup_time
+
+    def __repr__(self):
+        s = f"=== Request ===\nStart - {self.start}\nStop - {self.stop}\nPickup Time - {self.pickup_time}\n"
+        return  s

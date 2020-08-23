@@ -31,8 +31,8 @@ def admission_control(request, vehicles, G):
         if v.available and astar.distance_to_meters(v.position, loc) < maximum_radius:
             tabu_vehicles.append(v)
 
-        solution = genetic_algorithm(request, tabu_vehicles, G)
-        final_trip[solution[1]] = solution[0]  # will not store invalid trips!!
+    solution = genetic_algorithm(request, tabu_vehicles, G)
+    final_trip[solution[1]] = solution[0]  # will not store invalid trips!!
 
     for key in final_trip:
         r = final_trip[key]

@@ -29,32 +29,22 @@ class Scheduling():
         """
         self.vehicles.append(v)
         
-    def find_assign_trip(self, trips, heuristic):
+    def find_assign_trip(self, trip, heuristic):
         """
-        Assigns best available vehicle manage certain trips. Returns False if no vehicles are available.
+        Assigns best available vehicle manage a certain trips. Return True if trip-vehicle
+        pair was assigned, False otherwise.
 
         Parameters: (self, trip, heuristic)
             trips - Request()
             heuristic - Callable()
         """
-        # s = trip.start
-        # e = trip.stop
-        #times = [(v.distance_to(self.graph, s, heuristic), v) for v in self.vehicles]
-        ac = admission_control(trips, self.vehicles, self.graph) #{vehicle ID: request()}
+        ac = admission_control(trip, self.vehicles, self.graph) # {vehicle ID: request()}
         for v in self.vehicles:
             if v.id in ac.keys():
                 v.assign_trip(self.graph, ac[v.id], heuristic)
-
-        ##Note: AC key will be -1 if this request is not possible/no profit/no cars
-
-
-                #if vid == v.id:
-                    #v.assign_trip(self.graph, req, heursitic)
-        # if m[0] != "inf":
-        #     m[1].assign_trip(self.graph, trip, heuristic)
-        #     return True
-        # else:
-        #     return False
+                return True
+        return False
+        # Note: AC key will be -1 if this request is not possible/no profit/no cars
         
     def move(self, s=1):
         """

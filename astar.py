@@ -148,7 +148,7 @@ def pickle_trips(G):
                                  datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S")))
             t += 1
             # print(t)
-            if t == 1000:
+            if t == 10000:
                 break
 
     with open('trips.pkl', 'wb') as out:
@@ -212,13 +212,14 @@ def draw_graph(g, bounds=((-180, -90), (180, 90))):
             plt.plot((edge[0][1], edge[1][1]), (edge[0][0], edge[1][0]), 'c.-')
 
 
-def draw_path(path):
+def draw_path(path, color="b"):
     """
     Plots a path on matplotlib.
 
-    Parameters: (path)
+    Parameters: (path, color)
         path - [nodes]
-        node - (lat, lon)
+        color - str
+
 
     Note: inverse (lat, lon) to (lon, lat) for the graph.
     """
@@ -228,7 +229,7 @@ def draw_path(path):
         plt.plot((path[p][1], path[p + 1][1]), (path[p][0], path[p + 1][0]), "m--")
         px.append(path[p][1])
         py.append(path[p][0])
-    plt.plot(px, py, 'b.')
+    plt.plot(px, py, color + '.')
 
 
 # === Trips ===

@@ -32,6 +32,7 @@ class Vehicle():
     seats: int
     trips: list
     log: list
+    temp_path: list
     id: int
 
     def __init__(self, position, maximum_speed, fuel, current_speed, available, seats, id=0):
@@ -45,6 +46,7 @@ class Vehicle():
         self.seats = seats
         self.trips = []
         self.log = []
+        self.temp_path = []
         self.id = id
 
     def is_available(self):
@@ -95,8 +97,10 @@ class Vehicle():
         closest_intersection_to_ending = find_closest_node(G, ending)
         trip = {"starting": starting, "ending": ending, "start_time": time, "end_time": time, "path": nx.astar_path(G, closest_intersection_to_pos, closest_intersection_to_starting, heuristic)[:-1] + nx.astar_path(G, closest_intersection_to_starting, closest_intersection_to_ending, heuristic)}
         self.trips.append(trip)
-        print_trip_info(closest_intersection_to_pos, closest_intersection_to_ending, self.trips[0]["path"], G, True)
+        print_trip_info(closest_intersection_to_pos, closest_intersection_to_ending, self.trips[0]["path"], G)
         self.available = False
+        if self.temp_path is not None:
+            self.temp_path.append(trip["path"].copy())
 
     def complete_trip(self):
         """
@@ -107,6 +111,8 @@ class Vehicle():
         self.available = True
         if self.trips:
             self.log.append(self.trips[0])
+            self.log[-1]["path"] = self.temp_path[0]
+            self.temp_path.pop(0)
             self.trips.pop(0)
         if self.fuel < 50:
             pass
@@ -286,6 +292,21 @@ class Vehicle():
 
     def __eq__(self, other):
         return self
+
+
+    def __repr__(self):
+        s = f"=== Vehicle ID - {self.id} ===\n"
+        if self.log != []:
+            s += "Log -"
+            for l in self.log:
+                temp = ""
+                for dn, d in l.items():
+                    if dn != "path":
+                        temp += f"\t{dn} - {d}\n"
+                s += temp + "\n"
+        else:
+            s += "No Trips in this Round"
+        return  s
 
 
 # === Main ===
