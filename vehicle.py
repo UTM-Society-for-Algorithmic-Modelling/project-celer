@@ -168,15 +168,17 @@ class Vehicle():
         #print(f"=== {to} , {self.position} , {self.position == to} ===")
         x1, y1 = distance_to_meters((40.74345679662331, -73.72770035929027), (self.position[0], -73.72770035929027)), distance_to_meters((40.74345679662331, -73.72770035929027), (40.74345679662331, self.position[1]))
         x2, y2 = distance_to_meters((40.74345679662331, -73.72770035929027), (to[0], -73.72770035929027)), distance_to_meters((40.74345679662331, -73.72770035929027), (40.74345679662331, to[1]))
+        # Get x and y distance in meters
         x_dif = x2 - x1
         y_dif = y2 - y1
-        if y_dif == 0:
+        if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2
             if x_dif > 0:
                 self.angle = math.pi / 2
             if x_dif < 0:
                 self.angle = -1 * math.pi / 2
         else:
-            self.angle = math.atan(abs(x_dif / y_dif))
+            self.angle = math.atan(abs(x_dif / y_dif)) # Get angle using toa
+            # Adjust angle based on wether x and y are +/-
             if y_dif < 0:
                 if x_dif > 0:
                     self.angle += math.pi / 2
@@ -186,6 +188,7 @@ class Vehicle():
                 if x_dif < 0:
                     self.angle -= math.pi / 2
             self.angle += math.pi/2
+        # Move at the correct angle
         x_move = can_move * math.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         y_move = can_move * math.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         #print(self.angle, x_dif, y_dif, x_move, y_move)
