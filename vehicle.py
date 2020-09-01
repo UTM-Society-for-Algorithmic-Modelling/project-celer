@@ -137,25 +137,16 @@ class Vehicle():
         nodes = len(self.trips[0]["path"])
         # Go as far from node to node as possible with only full edges
         while current < nodes:
-            #dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
-            # try:
-            #     dist = G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048 / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"] * 1609 / 3600)
-            # except:
             dist = abs(distance_to_meters(self.position, self.trips[0]["path"][current])) / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"])
-            # print(dist, can_move)
-            # print(G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048, (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"] * 1609 / 3600))
-            # skip = dist
-            #print(can_move, dist)
+            #print("distance",dist, "can_move", can_move) #
             if can_move >= dist:
                 can_move -= dist
-                # while current < nodes and skip == abs(distance_to_meters(self.position, self.trips[0]["path"][current])) / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]):
-                #     self.position = self.trips[0]["path"][current]
-                #     current += 1
             else:
                 break
             self.position = self.trips[0]["path"][current]
+            #print("position", self.position) #
             current += 1
-        #print(current, nodes)
+        #print(current, len(self.trips[0]["path"]))
         if current == nodes:
             self.position = self.trips[0]["path"][-1]
             self.complete_trip()
@@ -188,6 +179,7 @@ class Vehicle():
                 if x_dif < 0:
                     self.angle -= math.pi / 2
             self.angle += math.pi/2
+            #print("self.angle", self.angle) #
         # Move at the correct angle
         x_move = can_move * math.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         y_move = can_move * math.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
@@ -208,8 +200,8 @@ class Vehicle():
                 self.position = self.position[0] + x_move / lat_per_1d, self.position[1] + y_move / lon_per_1d
         if self.position == to:
             self.trips[0]["path"].pop(0)
-            if len(self.trips[0]["path"]) == 1:
-                self.complete_trip()
+        if len(self.trips[0]["path"]) == 2: #this fix allows the plotting to terminate, but stops at path node at 3
+            self.complete_trip()
         #else:
             #self.trips[0]["path"][0] = self.position
 
@@ -318,7 +310,7 @@ if __name__ == "__main__":
     from astar import load_data
     G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     plt.ion()
-    #plt.axis('equal')
+    plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
     v1.assign_trip(G, Request((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528), 0, 0, datetime(2015,1,1)), diste)
     total = 0
@@ -330,3 +322,20 @@ if __name__ == "__main__":
         print(total)
         plt.pause(0.000001)
     plt.show()
+
+    #v1 = Vehicle((40.78366057066701, -73.98166160755392), 200.0, 10.0, 20.0, True, 4)
+    #from astar import load_data
+    #G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
+    #plt.ion()
+    #plt.axis('equal')
+    #draw_graph(G, bounds=((40.78366057066701, -73.98166160755392), (40.79820977074552, -73.95237419128945)))
+    #v1.assign_trip(G, Request((40.78366057066701, -73.98166160755392), (40.79820977074552, -73.95237419128945), 0, 0, datetime(2015,1,1)), diste)
+    #total = 0
+    #while not v1.available:
+    #    v1.move(G,1)
+    #    plt.plot([v1.position[1]], [v1.position[0]], "mo")
+    #    plt.draw()
+    #    total+=1
+        #print(total)
+    #    plt.pause(0.000001)
+    #plt.show()
