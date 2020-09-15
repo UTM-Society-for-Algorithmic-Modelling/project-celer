@@ -14,7 +14,7 @@ try:
 except ImportError:
     pass
 
-#test
+
 def main():
     """
     Main function
