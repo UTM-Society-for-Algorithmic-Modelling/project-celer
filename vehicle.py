@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from datetime import timedelta, datetime
 from request import Request
-
+from numpy import np
 
 class Vehicle():
     """
@@ -172,28 +172,34 @@ class Vehicle():
         if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2 #Check for less than some epsilon #mb some other way of calculating the angle
             if to[0]-self.position[0] > 0:
                 self.angle = math.pi / 2
-            if to[0]-self.position[0] < 0:
-                self.angle = -1 * math.pi / 2
+            if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
+                self.angle = np.multiply(np.int64(-1*10**15), np.divide(np.pi, np.int64(2*10**15)))
 
             # Main focus could totally change dir - if angle is too small we could point the opposite way due to Catastrophic cancellation so base it on the other angle x/y instead of y/x
             # Look into non lat,lon
         else:
-            self.angle = math.atan(abs(y_dif / x_dif)) # Get angle using toa
+            temp = np.divide(y_dif, x_dif)
+            self.angle = np.arctan(np.absolute(temp))
+            #self.angle = math.atan(math.abs(y_dif / x_dif)) # Get angle using toa
             # Adjust angle based on wether x and y are +/-
-            if to[0]-self.position[0] < 0:
-                if to[1]-self.position[1] > 0:
-                    self.angle += math.pi / 2
+            if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
+                if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) > np.int64(0):
+                    self.angle = np.add(self.angle, np.divide(np.pi, np.int64(2*10**15)))
+                    #self.angle += np.divide(np.pi, np.int64(2))
                 else:
-                    self.angle += math.pi
+                    self.angle = np.add(self.angle, np.pi)
+                    #self.angle += math.pi
             else:
-                if to[1]-self.position[1] < 0:
-                    self.angle -= math.pi / 2
+                if np.subtarct(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) < np.int64(0):
+                        self.angle = np.subtract(self.angle, np.divide(np.pi, np.int64(2*10**15))
+                        #self.angle -= math.pi / 2
             #self.angle += math.pi/2
         # Move at the correct angle
-        x_move = can_move * math.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
-        y_move = can_move * math.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
+        x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
+        y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         #print(self.angle, x_dif, y_dif, x_move, y_move)
-        if  0 <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
+        np.int64(0) <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
+        if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif))
             print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
             self.position = to
         else:
