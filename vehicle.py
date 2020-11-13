@@ -4,7 +4,7 @@ import math
 import matplotlib.pyplot as plt
 from datetime import timedelta, datetime
 from request import Request
-from numpy import np
+import numpy as np
 
 class Vehicle():
     """
@@ -191,16 +191,16 @@ class Vehicle():
                     self.angle = np.add(self.angle, np.pi)
                     #self.angle += math.pi
             else:
-                if np.subtarct(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) < np.int64(0):
-                        self.angle = np.subtract(self.angle, np.divide(np.pi, np.int64(2*10**15))
+                if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) < np.int64(0):
+                        self.angle = np.subtract(self.angle, np.divide(np.pi, np.int64(2*10**15)))
                         #self.angle -= math.pi / 2
             #self.angle += math.pi/2
         # Move at the correct angle
         x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         #print(self.angle, x_dif, y_dif, x_move, y_move)
-        np.int64(0) <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
-        if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif))
+        #np.int64(0) <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
+        if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
             print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
             self.position = to
         else:
@@ -324,7 +324,7 @@ class Vehicle():
 if __name__ == "__main__":
     v1 = Vehicle((40.74345679662331, -73.72770035929027), 200.0, 10.0, 20.0, True, 4)
     from astar import load_data
-    G, trips = load_data(reset=True, graph=False, trip=False, abbr=False)
+    G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     plt.ion()
     #plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
