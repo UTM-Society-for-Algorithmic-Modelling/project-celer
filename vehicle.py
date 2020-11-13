@@ -174,7 +174,7 @@ class Vehicle():
             if np.subtract(np.int64(np.multiply(to[0],10**15)),np.int64(np.multiply(self.position[0],10**15))) > 0:
                 self.angle = math.pi / 2
             if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
-                self.angle = np.multiply(np.int64(-1*10**15), np.divide(np.pi, np.int64(2*10**15)))
+                self.angle = np.multiply(np.int64(-1*10**15), np.divide(np.pi, 2))
 
             # Main focus could totally change dir - if angle is too small we could point the opposite way due to Catastrophic cancellation so base it on the other angle x/y instead of y/x
             # Look into non lat,lon
@@ -185,19 +185,20 @@ class Vehicle():
             # Adjust angle based on wether x and y are +/-
             if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
                 if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) > np.int64(0):
-                    self.angle = np.add(self.angle, np.divide(np.pi, np.int64(2*10**15)))
+                    self.angle = np.add(self.angle, np.divide(np.pi,2))
                     #self.angle += np.divide(np.pi, np.int64(2))
                 else:
                     self.angle = np.add(self.angle, np.pi)
                     #self.angle += math.pi
             else:
                 if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) < np.int64(0):
-                        self.angle = np.subtract(self.angle, np.divide(np.pi, np.int64(2*10**15)))
+                        self.angle = np.subtract(self.angle, np.divide(np.pi, 2))
                         #self.angle -= math.pi / 2
             #self.angle += math.pi/2
         # Move at the correct angle
         x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
+        print(x_move,x_dif,"\n",y_move,y_dif,self.angle)
         #print(self.angle, x_dif, y_dif, x_move, y_move)
         #np.int64(0) <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
         if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
