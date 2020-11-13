@@ -168,10 +168,10 @@ class Vehicle():
         to = self.trips[0]["path"][1] 
         #print(f"=== {to} , {self.position} , {self.position == to} ===")
         # Get x and y distance in meters
-        x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10^15))
-        y_dif = np.int64(np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10^15))
+        x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))
+        y_dif = np.int64(np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10**15))
         if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2 #Check for less than some epsilon #mb some other way of calculating the angle
-            if np.subtract(to[0],self.position[0]) > 0:
+            if np.subtract(np.int64(np.multiply(to[0],10**15)),np.int64(np.multiply(self.position[0],10**15))) > 0:
                 self.angle = math.pi / 2
             if to[0]-self.position[0] < 0:
                 self.angle = -1 * math.pi / 2
@@ -203,11 +203,11 @@ class Vehicle():
             lat_per_1d = 111000
             lon_per_1d = np.multiply(np.cos(self.position[0]),111321)
             #print(to[0] - self.position[0], to[1] - self.position[1], x_move / lat_per_1d, y_move / lon_per_1d)
-            if abs(np.subtract(to[0],self.position[0])) <= abs(np.divide(x_move,lat_per_1d)) or abs(np.subtract(to[1],self.position[1])) <= abs(np.divide(y_move,lon_per_1d)):
+            if abs(np.subtract(np.multiply(to[0],10**15),np.multiply(self.position[0],10**15))) <= abs(np.divide(x_move,lat_per_1d)) or abs(np.subtract(np.multiply(to[1],10**15),np.multiply(self.position[1],10**15))) <= abs(np.divide(y_move,lon_per_1d)):
                 print("T2", self.angle, "\n", to[0] - self.position[0], to[1] - self.position[1], "\n", x_move / lat_per_1d, y_move/lon_per_1d , "\n")
                 self.position = to
             else:
-                self.position = np.divide(np.add(np.multiply(self.position[0],10^15), np.divide(x_move,lat_per_1d)),10^15), np.divide(np.add(np.multiply(self.position[1],10^15), np.divide(y_move,lon_per_1d)),10^15)
+                self.position = np.divide(np.add(np.multiply(self.position[0],10**15), np.divide(x_move,lat_per_1d)),10**15), np.divide(np.add(np.multiply(self.position[1],10**15), np.divide(y_move,lon_per_1d)),10**15)
         if self.position == to:
             self.trips[0]["path"].pop(0)
             if len(self.trips[0]["path"]) == 1:
@@ -318,7 +318,7 @@ class Vehicle():
 if __name__ == "__main__":
     v1 = Vehicle((40.74345679662331, -73.72770035929027), 200.0, 10.0, 20.0, True, 4)
     from astar import load_data
-    G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
+    G, trips = load_data(reset=True, graph=False, trip=False, abbr=False)
     plt.ion()
     #plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))

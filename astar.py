@@ -385,14 +385,14 @@ def distance_to_meters(n1, n2):
     #math.atan2(math.sqrt(a), math.sqrt(1 - a))
     return round(np.multiply(radius,c),2)
     #round(radius * c, 2)
-    o1 = x1 * math.pi / 180
-    o2 = x2 * math.pi / 180
-    d1 = (x2 - x1) * math.pi / 180
-    d2 = (y2 - y1) * math.pi / 180
+    #o1 = x1 * math.pi / 180
+    #o2 = x2 * math.pi / 180
+    #d1 = (x2 - x1) * math.pi / 180
+    #d2 = (y2 - y1) * math.pi / 180
 
-    a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2 / 2) * math.sin(d2 / 2)
-    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-    return round(radius * c, 2)
+   # a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2 / 2) * math.sin(d2 / 2)
+    #c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    #return round(radius * c, 2)
 
 
 # === Main ===
