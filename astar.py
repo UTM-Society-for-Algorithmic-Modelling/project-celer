@@ -106,8 +106,8 @@ def pickle_graph(abbr, traffic_dict):
             divider = speeds.get(street, 0)
             if divider == 0:
                 divider = 25
-            seg_start = seg_start[1], seg_start[0]
-            seg_end = seg_end[1], seg_end[0]
+            seg_start = seg_start[1] * 10 ** 15, seg_start[0] * 10 ** 15
+            seg_end = seg_end[1] * 10 ** 15, seg_end[0] * 10 ** 15
             if street in traffic_dict:
                 volume_total = traffic_dict[street]
                 volume_count = volume_total[time]
@@ -141,14 +141,14 @@ def pickle_trips(G):
             temp = {}
             for i in range(len(first_line)):
                 temp[first_line[i]] = line[i]
-            starting = (float(temp["pickup_latitude"]), float(temp["pickup_longitude"]))
-            ending = (float(temp["dropoff_latitude"]), float(temp["dropoff_longitude"]))
+            starting = (float(temp["pickup_latitude"]) * 10 ** 15, float(temp["pickup_longitude"]) * 10 ** 15)
+            ending = (float(temp["dropoff_latitude"]) * 10 ** 15, float(temp["dropoff_longitude"]) * 10 ** 15)
             n1, n2 = find_closest_node(G, starting), find_closest_node(G, ending)
             trips.append(Request(n1, n2, 0, int(temp["passenger_count"]),
                                  datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S")))
             t += 1
             # print(t)
-            if t == 10000:
+            if t == 100:
                 break
 
     with open('trips.pkl', 'wb') as out:
@@ -193,7 +193,7 @@ class ResetPickle(Exception):
 
 
 # === Plotting ===
-def draw_graph(g, bounds=((-180, -90), (180, 90))):
+def draw_graph(g, bounds=((-180 * 10 ** 15, -90 * 10 ** 15), (180 * 10 ** 15, 90 * 10 ** 15))):
     """
     Plots the edges on matplotlib.
 
@@ -209,7 +209,7 @@ def draw_graph(g, bounds=((-180, -90), (180, 90))):
     n2 = bounds[1]
     for edge in g.edges():
         if min(n1[0], n2[0]) < edge[0][0] < max(n1[0], n2[0]) and min(n1[1], n2[1]) < edge[0][1] < max(n1[1], n2[1]):
-            plt.plot((edge[0][1], edge[1][1]), (edge[0][0], edge[1][0]), 'c.-')
+            plt.plot((edge[0][1]* 10**-15, edge[1][1]* 10**-15), (edge[0][0]* 10**-15, edge[1][0]* 10**-15), 'c.-')
 
 
 def draw_path(path, color="b"):
@@ -226,9 +226,9 @@ def draw_path(path, color="b"):
     px = []
     py = []
     for p in range(len(path) - 1):
-        plt.plot((path[p][1], path[p + 1][1]), (path[p][0], path[p + 1][0]), "m--")
-        px.append(path[p][1])
-        py.append(path[p][0])
+        plt.plot((path[p][1]* 10**-15, path[p + 1][1]* 10**-15), (path[p][0]* 10**-15, path[p + 1][0]* 10**-15), "m--")
+        px.append(path[p][1]* 10**-15)
+        py.append(path[p][0]* 10**-15)
     plt.plot(px, py, color + '.')
 
 
@@ -370,10 +370,12 @@ def distance_to_meters(n1, n2):
         n2 - (lat, lon)
     """
     radius = 6371000  # Radius of earth
-    o1 = n1[0] * math.pi / 180
-    o2 = n2[0] * math.pi / 180
-    d1 = (n2[0] - n1[0]) * math.pi / 180
-    d2 = (n2[1] - n1[1]) * math.pi / 180
+    x1, y1 = n1[0] * 10 ** -15, n1[1] * 10 ** -15
+    x2, y2 = n2[0] * 10 ** -15, n2[1] * 10 ** -15
+    o1 = x1 * math.pi / 180
+    o2 = x2 * math.pi / 180
+    d1 = (x2 - x1) * math.pi / 180
+    d2 = (y2 - y1) * math.pi / 180
 
     a = math.sin(d1 / 2) * math.sin(d1 / 2) + math.cos(o1) * math.cos(o2) * math.sin(d2 / 2) * math.sin(d2 / 2)
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
@@ -383,3 +385,5 @@ def distance_to_meters(n1, n2):
 # === Main ===
 if __name__ == "__main__":
     main()
+    #Computer epsilon of machine
+    #AssertAlmostEqual
