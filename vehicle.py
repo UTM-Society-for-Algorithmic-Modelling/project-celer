@@ -168,8 +168,8 @@ class Vehicle():
         to = self.trips[0]["path"][1] 
         #print(f"=== {to} , {self.position} , {self.position == to} ===")
         # Get x and y distance in meters
-        x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))
-        y_dif = np.int64(np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10**15))
+        x_dif = np.int64(np.multiply(np.subtract(to[0],self.position[0]),10**15))#np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))
+        y_dif = np.int64(np.multiply(np.subtract(to[1],self.position[1]),10**15))#np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10**15))
         if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2 #Check for less than some epsilon #mb some other way of calculating the angle
             if np.subtract(np.int64(np.multiply(to[0],10**15)),np.int64(np.multiply(self.position[0],10**15))) > 0:
                 self.angle = math.pi / 2
@@ -196,12 +196,13 @@ class Vehicle():
                         #self.angle -= math.pi / 2
             #self.angle += math.pi/2
         # Move at the correct angle
-        x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
-        y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
+        print(G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"], can_move, np.cos(self.angle))
+        x_move = can_move * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"] * 10 ** 15
+        y_move = can_move * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"] * 10 ** 15
         print(x_move,x_dif,"\n",y_move,y_dif,self.angle)
         #print(self.angle, x_dif, y_dif, x_move, y_move)
         #np.int64(0) <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
-        if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
+        if  np.int64(10) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(10) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
             print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
             self.position = to
         else:
@@ -323,20 +324,22 @@ class Vehicle():
 
 # === Main ===
 if __name__ == "__main__":
-    v1 = Vehicle((40.74345679662331, -73.72770035929027), 200.0, 10.0, 20.0, True, 4)
     from astar import load_data
     G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     plt.ion()
-    #plt.axis('equal')
-    draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
-    v1.assign_trip(G, Request((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528), 0, 0, datetime(2015,1,1)), diste)
+
+    v1 = Vehicle((40.74345679662331, -73.72770035929027), 200.0, 10.0, 20.0, True, 4) # Creates our Vehicle
+    draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528))) # Draws the graph
+    v1.assign_trip(G, Request((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528), 0, 0, datetime(2015,1,1)), diste) # Assigns a trip to our Vehicle
+    
+    # Moves our vehicle based on the move function
     total = 0
     while not v1.available:
-        v1.move(G,2)
+        v1.move(G,1)
         plt.plot([v1.position[1]], [v1.position[0]], "mo")
         plt.draw()
         total+=1
-        print(total)
+        print("Seconds: " + total)
         plt.pause(0.000001)
     plt.show()
     plt.pause(5)

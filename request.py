@@ -22,24 +22,45 @@ class Request():
         self.night = False
 
     def is_selected(self):
+        """ 
+        Returns whether the Request is selected.
+        """
         return self.selected
 
     def get_seats(self):
+        """ 
+        Returns the number of seats.
+        """
         return self.seats
 
     def get_time(self):
+        """ 
+        Returns the maximum time.
+        """
         return self.max_time
 
     def get_pickup_time(self):
+        """ 
+        Returns the pickup time.
+        """
         return self.pickup_time
 
     def stop(self):
+        """ 
+        Returns the final location.
+        """
         return self.stop
 
     def start(self):
+        """ 
+        Returns the starting location.
+        """
         return self.start
 
     def select(self):
+        """ 
+        Selects the Request.
+        """
         self.selected = True
 
     def rush(self):

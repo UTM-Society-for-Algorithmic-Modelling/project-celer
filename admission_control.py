@@ -22,8 +22,8 @@ def admission_control(request, vehicles, G):
     """
    
     final_trip = {}
-    tabu_vehicles = [] #Build a distance based Tabu list for possible vehicles
-    #G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
+    tabu_vehicles = [] # Build a distance based Tabu list for possible vehicles
+    # G, t = astar.load_data(reset=False, graph=False, trip=False, abbr=False)
 
     for i in range(0, len(vehicles)):
         v = vehicles[i]
