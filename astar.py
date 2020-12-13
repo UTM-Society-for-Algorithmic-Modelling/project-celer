@@ -76,6 +76,7 @@ def pickle_graph(abbr, traffic_dict):
         with open('abbr.pkl', 'rb') as abbr_file:
             abbr = pickle.load(abbr_file)
     except:
+        print("Loading abbreviations...")
         abbr = {}
         with open("abbr.txt") as rFile:
             for line in rFile:
@@ -83,19 +84,23 @@ def pickle_graph(abbr, traffic_dict):
                 abbr[line.split(" ")[0].upper()] = line.split(" ")[1].upper()
         with open('abbr.pkl', 'wb') as out:
             pickle.dump(abbr, out)
+        print("Done.")
 
     # Variables to keep track of the number of recognized streets
     recognized = 0
     unrecognized = 0
 
     # Build speeds dictionary for every road
+    print("Building speeds dictionary...")
     speeds = {}
     for feature in fiona.open("NYC/VZV_Speed Limits/geo_export_6459c10e-7bfb-4e64-ae29-f0747dc3824c.shp"):
         street = feature["properties"]["street"]
         for v in street_variations(street, abbr):
             speeds[v] = feature["properties"]["postvz_sl"]
+    print("Done.")
 
     # Create a Graph with intersections as nodes and roads as edges
+    print("Creating graph...")
     time = random.randint(0, 23)
     G = nx.Graph()
     for feature in fiona.open("NYC/Map/geo_export_24fdfadb-893d-40a0-a751-a76cdefc9bc6.shp"):
@@ -120,12 +125,12 @@ def pickle_graph(abbr, traffic_dict):
 
             G.add_edge(seg_start, seg_end, weight=w, distance=feature["properties"]["shape_leng"],
                        speed=divider / 3600 * 1609) # Gives the edge properties like a weight, the in real life distance, and the speed limit
-
     print(
         f"Streets recognized: {recognized}. Unrecognized: {unrecognized}. Percent recognized: {recognized / (unrecognized + recognized) * 100}%.")
-
+   
     with open('graph.pkl', 'wb') as out:
         pickle.dump(G, out)
+    print("Done.")
 
 
 def pickle_trips(G):
@@ -135,6 +140,7 @@ def pickle_trips(G):
     Parameters: (G)
         G - networkx.graph()
     """
+    print("Loading trips...")
     t = 0 # Number of trips loaded so far
     trips = []
     with open("NYC/2015_taxi_data.csv") as rFile:
@@ -151,11 +157,12 @@ def pickle_trips(G):
                                  datetime.strptime(temp["tpep_pickup_datetime"], "%Y-%m-%d %H:%M:%S")))
             t += 1
             if t == 100: # Sets a limit on the number of trips to save time.
-                print("Loaded " + t + " trips.")
+                print("Loaded " + str(t) + " trips.")
                 break
 
     with open('trips.pkl', 'wb') as out:
         pickle.dump(trips, out)
+    print("Done.")
 
 
 def find_closest_node(G, starting):
