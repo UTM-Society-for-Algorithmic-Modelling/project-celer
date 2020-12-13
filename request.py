@@ -64,10 +64,10 @@ class Request():
         self.selected = True
 
     def rush(self):
-        self.rush = True
+        self.rush = True # Methods available to extend this simulation in the future
 
     def night(self):
-        self.night = True
+        self.night = True # # Methods available to extend this simulation in the future
 
     def is_rush(self):
         return self.rush
