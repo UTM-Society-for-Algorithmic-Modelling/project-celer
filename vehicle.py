@@ -126,8 +126,6 @@ class Vehicle():
             G - networkx.graph()
             s - float
         """
-        import numpy as np
-        #self.current_speed += self.acceleration
         # Idea: travel as many full edges as we can and then do part of one edge.
         if not len(self.trips):
             return
@@ -137,26 +135,13 @@ class Vehicle():
         current = 1
         nodes = len(self.trips[0]["path"])
         # Go as far from node to node as possible with only full edges
-        while current < nodes:
-            #dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
-            # try:
-            #     dist = G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048 / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"] * 1609 / 3600)
-            # except:
+        while current < nodes:        
             dist = np.divide(abs(distance_to_meters(self.position, self.trips[0]["path"][current])),(G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]))
-            # print(dist, can_move)
-            # print(G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["distance"] * 0.3048, (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"] * 1609 / 3600))
-            # skip = dist
-            #print(can_move, dist)
-            if can_move >= dist:
                 can_move = np.subtract(can_move,dist)
-                # while current < nodes and skip == abs(distance_to_meters(self.position, self.trips[0]["path"][current])) / (G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]):
-                #     self.position = self.trips[0]["path"][current]
-                #     current += 1
             else:
                 break
             self.position = self.trips[0]["path"][current]
             current += 1
-        #print(current, nodes)
         if current == nodes:
             self.position = self.trips[0]["path"][-1]
             self.complete_trip()
@@ -166,50 +151,38 @@ class Vehicle():
             self.trips[0]["path"].pop(0)
         # Travel part of of edge but not full
         to = self.trips[0]["path"][1] 
-        #print(f"=== {to} , {self.position} , {self.position == to} ===")
         # Get x and y distance in meters
         x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))
         y_dif = np.int64(np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10**15))
-        if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2 #Check for less than some epsilon #mb some other way of calculating the angle
+        if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2
             if np.subtract(np.int64(np.multiply(to[0],10**15)),np.int64(np.multiply(self.position[0],10**15))) > 0:
                 self.angle = math.pi / 2
             if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
                 self.angle = np.multiply(np.int64(-1*10**15), np.divide(np.pi, 2))
 
-            # Main focus could totally change dir - if angle is too small we could point the opposite way due to Catastrophic cancellation so base it on the other angle x/y instead of y/x
-            # Look into non lat,lon
+            # Main focus could totally change dir - if angle is too small we could point the opposite way due to catastrophic cancellation
         else:
             temp = np.divide(y_dif, x_dif)
             self.angle = np.arctan(np.absolute(temp))
-            #self.angle = math.atan(math.abs(y_dif / x_dif)) # Get angle using toa
             # Adjust angle based on wether x and y are +/-
             if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
                 if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) > np.int64(0):
                     self.angle = np.add(self.angle, np.divide(np.pi,2))
-                    #self.angle += np.divide(np.pi, np.int64(2))
                 else:
                     self.angle = np.add(self.angle, np.pi)
-                    #self.angle += math.pi
             else:
                 if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) < np.int64(0):
                         self.angle = np.subtract(self.angle, np.divide(np.pi, 2))
-                        #self.angle -= math.pi / 2
-            #self.angle += math.pi/2
         # Move at the correct angle
         x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         print(x_move,x_dif,"\n",y_move,y_dif,self.angle)
-        #print(self.angle, x_dif, y_dif, x_move, y_move)
-        #np.int64(0) <= abs(x_move)-abs(x_dif) or 0 <= abs(y_move)-abs(y_dif):
         if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
             print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
             self.position = to
         else:
-            # x1, y1 = distance_to_meters((40.74345679662331, -73.72770035929027), (self.position[0], -73.72770035929027)), distance_to_meters((40.74345679662331, -73.72770035929027), (40.74345679662331, self.position[1]))
-            # plt.plot([y1 + y_move], [x1 + x_move], "bo")
             lat_per_1d = 111000
             lon_per_1d = np.multiply(np.cos(self.position[0]),111321)
-            #print(to[0] - self.position[0], to[1] - self.position[1], x_move / lat_per_1d, y_move / lon_per_1d)
             if abs(np.subtract(np.multiply(to[0],10**15),np.multiply(self.position[0],10**15))) <= abs(np.divide(x_move,lat_per_1d)) or abs(np.subtract(np.multiply(to[1],10**15),np.multiply(self.position[1],10**15))) <= abs(np.divide(y_move,lon_per_1d)):
                 print("T2", self.angle, "\n", to[0] - self.position[0], to[1] - self.position[1], "\n", x_move / lat_per_1d, y_move/lon_per_1d , "\n")
                 self.position = to
@@ -219,88 +192,6 @@ class Vehicle():
             self.trips[0]["path"].pop(0)
             if len(self.trips[0]["path"]) == 1:
                 self.complete_trip()
-        #else:
-            #self.trips[0]["path"][0] = self.position
-
-
-        # can_move = self.current_speed
-        # current = 1
-        # nodes = len(self.trips[0]["path"])
-        # # Go as far from node to node as possible with only full trips
-        # while 0 < abs(can_move) and current < nodes:
-        #     dist = abs(distance_to_meters(self.trips[0]["path"][current-1], self.trips[0]["path"][current]))
-        #     if can_move > dist:
-        #         can_move -= dist
-        #     else:
-        #         break
-        #     current += 1
-        # if current == nodes:
-        #     self.position = self.trips[0]["path"][-1]
-        #     self.complete_trip()
-        #     return
-        # # Remove nodes we just traveled
-        # self.position = self.trips[0]["path"][current-1]
-        # for i in range(current-2):
-        #     self.trips[0]["path"].pop(0)
-        # # Travel part of of edge but not full
-        # to = self.trips[0]["path"][1]
-        # lat_per_1d = 111000
-        # lon_per_1d = math.cos(self.position[0]) * 111321
-        # lat_dif = to[0] - self.position[0]
-        # lon_dif = to[1] - self.position[1]
-        # if lon_dif == 0:
-        #     if lat_dif > 0:
-        #         self.angle += math.pi / 2
-        #     if lat_dif < 0:
-        #         self.angle += -1 * math.pi / 2
-        # else:
-        #     self.angle = abs(math.atan((lat_dif * lat_per_1d) / (lon_dif * lon_per_1d)))
-        # if lon_dif < 0:
-        #     if lat_dif > 0:
-        #         self.angle += math.pi / 2
-        #     else:
-        #         self.angle += math.pi
-        # else:
-        #     if lat_dif < 0:
-        #         self.angle -= math.pi / 2
-
-        # if 0 < self.angle < math.pi / 2: 
-        #     print(self.angle, lat_dif, lon_dif)
-        # print(self.angle)
-        # lat_move = can_move * math.sin(self.angle) / lat_per_1d
-        # lon_move = can_move * math.cos(self.angle) / lon_per_1d
-        # if abs(lat_dif) <= abs(lat_move) or abs(lon_dif) <= abs(lon_move):
-        #     #print(1, lat_move - lat_dif, lon_move-lon_dif)
-        #     print(1)
-        #     lat_move = lat_dif
-        #     lon_move = lon_dif
-        # self.position = self.position[0] + lat_move, self.position[1] + lon_move
-        # if self.position == to:
-        #     self.trips[0]["path"].pop(0)
-        #     if len(self.trips[0]["path"]) == 1:
-        #         self.complete_trip()
-        # else:
-        #     self.trips[0]["path"][0] = self.position
-
-
-        # to = self.trips[0]["path"][1]
-        # lat_dif = to[0] - self.position[0]
-        # lon_dif = to[1] - self.position[1]
-        # if lat_dif == 0:
-        #     self.angle = math.atan(lon_dif / 1)
-        # else:
-        #     self.angle = math.atan(lon_dif / lat_dif)
-        # lat_move = self.current_speed * math.cos(self.angle)
-        # lon_move = self.current_speed * math.sin(self.angle)
-        # print(lat_move, lon_move, lat_dif, lon_dif)
-        # if lat_dif < lat_move or lon_dif < lon_move:
-        #     lat_move = lat_dif
-        #     lon_move = lon_dif
-        # self.position = self.position[0] + lat_move, self.position[1] + lon_move
-        # if self.position == to:
-        #     self.trips[0]["path"].pop(0)
-        #     if len(self.trips[0]["path"]) == 1:
-        #         self.complete_trip()
 
     def __eq__(self, other):
         return self
@@ -321,13 +212,12 @@ class Vehicle():
         return  s
 
 
-# === Main ===
+# === Main - An example test ===
 if __name__ == "__main__":
     v1 = Vehicle((40.74345679662331, -73.72770035929027), 200.0, 10.0, 20.0, True, 4)
     from astar import load_data
     G, trips = load_data(reset=False, graph=False, trip=False, abbr=False)
     plt.ion()
-    #plt.axis('equal')
     draw_graph(G, bounds=((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528)))
     v1.assign_trip(G, Request((40.74345679662331, -73.72770035929027), (40.77214782804362, -73.76426798716528), 0, 0, datetime(2015,1,1)), diste)
     total = 0
