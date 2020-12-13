@@ -22,7 +22,7 @@ class Vehicle():
     trips: list of trip dictionaries (keys: "starting", "ending", "path")
     id: number representing the vehicle
     """
-    position: tuple # Make position a class of its own - edge property, 0-1 for position within edge
+    position: tuple
     maximum_speed: int
     fuel: int
     current_speed: int
@@ -137,6 +137,7 @@ class Vehicle():
         # Go as far from node to node as possible with only full edges
         while current < nodes:        
             dist = np.divide(abs(distance_to_meters(self.position, self.trips[0]["path"][current])),(G[self.trips[0]["path"][current-1]][self.trips[0]["path"][current]]["speed"]))
+            if can_move >= dist:
                 can_move = np.subtract(can_move,dist)
             else:
                 break
@@ -152,7 +153,7 @@ class Vehicle():
         # Travel part of of edge but not full
         to = self.trips[0]["path"][1] 
         # Get x and y distance in meters
-        x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))
+        x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))		         
         y_dif = np.int64(np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10**15))
         if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2
             if np.subtract(np.int64(np.multiply(to[0],10**15)),np.int64(np.multiply(self.position[0],10**15))) > 0:
@@ -175,11 +176,10 @@ class Vehicle():
                         self.angle = np.subtract(self.angle, np.divide(np.pi, 2))
         # Move at the correct angle
         print(G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"], can_move, np.cos(self.angle))
-        x_move = can_move * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"] * 10 ** 15
-        y_move = can_move * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"] * 10 ** 15
+        x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
+        y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         print(x_move,x_dif,"\n",y_move,y_dif,self.angle)
         if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
-            print("T1", self.angle, "\n", x_move, y_move, "\n", x_dif, y_dif, "\n")
             self.position = to
         else:
             lat_per_1d = 111000
@@ -226,11 +226,11 @@ if __name__ == "__main__":
     # Moves our vehicle based on the move function
     total = 0
     while not v1.available:
-        v1.move(G,1)
+        v1.move(G,2)
         plt.plot([v1.position[1]], [v1.position[0]], "mo")
         plt.draw()
         total+=1
-        print("Seconds: " + total)
+        print("Seconds: " + str(total))
         plt.pause(0.000001)
     plt.show()
     plt.pause(5)
