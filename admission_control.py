@@ -43,9 +43,9 @@ def admission_control(request, vehicles, G):
 
 def genetic_algorithm(request, tabu, G):
     """
-    Optimization. Generates the best trip that maximizes profit based on fuel efficiency, distance, time and traffic. 
-    Returns a [request, vehicle]
-    If no vehicles can complete an admissible trip for this request, vehicle = -1 
+    Modelled after the one found in the research paper. Generates the best trip that maximizes profit based on fuel efficiency, distance, time and traffic. 
+    Returns a [request, vehicle].
+    If no vehicles can complete an admissible trip for this request, vehicle = -1.
     
     ==Parameters==
     request: a request obj
@@ -91,9 +91,3 @@ def get_distance(path, n1, n2, G):
             distances.append(G[path[p]][path[p + 1]]["distance"])
 
     return round(sum(distances) * 0.3048, 2)
-
-
-if __name__ == "__main__":
-    test_a = []
-    test_b = []
-    admission_control(test_a, test_b)
