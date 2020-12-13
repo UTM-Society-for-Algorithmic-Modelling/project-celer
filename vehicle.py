@@ -155,7 +155,7 @@ class Vehicle():
         # Get x and y distance in meters
         x_dif = np.int64(np.multiply(abs(distance_to_meters((self.position[0], 0), (to[0], 0))), 10**15))		         
         y_dif = np.int64(np.multiply(abs(distance_to_meters((0, self.position[1]), (0, to[1]))),10**15))
-        if y_dif == 0: # Adjacent side has no length so the angle is either +-pi/2
+        if x_dif == 0: # Adjacent side has no length so the angle is either +-pi/2
             if np.subtract(np.int64(np.multiply(to[0],10**15)),np.int64(np.multiply(self.position[0],10**15))) > 0:
                 self.angle = math.pi / 2
             if np.subtract(np.int64(to[0]*10**15), np.int64(self.position[0]*10**15)) < np.int64(0):
@@ -175,17 +175,14 @@ class Vehicle():
                 if np.subtract(np.int64(to[1]*10**15), np.int64(self.position[1]*10**15)) < np.int64(0):
                         self.angle = np.subtract(self.angle, np.divide(np.pi, 2))
         # Move at the correct angle
-        print(G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"], can_move, np.cos(self.angle))
         x_move = np.int64(can_move*10**15) * np.cos(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
         y_move = np.int64(can_move*10**15) * np.sin(self.angle) * G[self.trips[0]["path"][0]][self.trips[0]["path"][1]]["speed"]
-        print(x_move,x_dif,"\n",y_move,y_dif,self.angle)
         if  np.int64(0) <= np.subtract(np.absolute(x_move), np.absolute(x_dif)) or np.int64(0) <= np.subtract(np.absolute(y_move), np.absolute(y_dif)):
             self.position = to
         else:
             lat_per_1d = 111000
             lon_per_1d = np.multiply(np.cos(self.position[0]),111321)
             if abs(np.subtract(np.multiply(to[0],10**15),np.multiply(self.position[0],10**15))) <= abs(np.divide(x_move,lat_per_1d)) or abs(np.subtract(np.multiply(to[1],10**15),np.multiply(self.position[1],10**15))) <= abs(np.divide(y_move,lon_per_1d)):
-                print("T2", self.angle, "\n", to[0] - self.position[0], to[1] - self.position[1], "\n", x_move / lat_per_1d, y_move/lon_per_1d , "\n")
                 self.position = to
             else:
                 self.position = np.divide(np.add(np.multiply(self.position[0],10**15), np.divide(x_move,lat_per_1d)),10**15), np.divide(np.add(np.multiply(self.position[1],10**15), np.divide(y_move,lon_per_1d)),10**15)
